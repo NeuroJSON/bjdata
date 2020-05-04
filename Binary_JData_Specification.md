@@ -49,24 +49,25 @@ Format Specification
 A single construct with two optional segments (length and data) is used for all 
 types:
 ```
-[type, 1 byte char]([integer numeric length])([data])
+[type, 1-byte char]([integer numeric length])([data])
 ```
 Each element in the tuple is defined as:
-- **type** - A 1 byte ASCII char (**_Marker_**) used to indicate the type of 
+- **type** - A 1-byte ASCII char (**_Marker_**) used to indicate the type of 
 the data following it.
 
-- **length** (_optional_) - A positive, integer numeric type (uint8, int16, 
-int32, int64) specifying the length of the following data payload.
+- **length** (_optional_) - A positive, integer numeric type (`uint8`, `int8`, 
+`uint16`, `int16`, `uint32`, `int32`, `uint64` or `int64`) specifying the length 
+of the following data payload.
 
-- **data** (_optional_) - A run of bytes representing the actual binary data 
-for this type of value.
+- **data** (_optional_) - A contiguous byte-stream containing serialized binary  
+data representing the actual binary data for this type of value.
 
 ### Notes
-- Some values are simple enough that just writing the 1 byte ASCII marker into 
+- Some values are simple enough that just writing the 1-byte ASCII marker into 
 the stream is enough to represent the value (e.g. null) while others have a 
 type that is specific enough that no length is needed as the length is implied 
-by the type (e.g. int32) while others still require both a type and a length to 
-communicate their value (e.g. string). Additionally some values (e.g. array) 
+by the type (e.g. `int32`) while others still require both a type and a length to 
+communicate their value (e.g. string). Additionally some values (e.g. `array`) 
 have additional (_optional_) parameters to improve decoding efficiency and/or 
 to reduce size of the encoded value even further.
 
@@ -74,7 +75,7 @@ to reduce size of the encoded value even further.
 Big-Endian order.
 
 - To store binary data, use a [strongly-typed](#container_optimized) array of 
-uint8 values.
+`uint8` values.
 
 ## <a name="type_summary"/>Type summary
 
@@ -87,12 +88,12 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [int8](#value_numeric) | 2 bytes | *i* | No | Yes
 [uint8](#value_numeric) | 2 bytes | *U* | No | Yes
 [int16](#value_numeric) | 3 bytes | *I* (upper case i) | No | Yes
-[uint16](#value_numeric) | 3 bytes | *u* | No | Yes
+[uint16](#value_numeric)* | 3 bytes | *u* | No | Yes
 [int32](#value_numeric) | 5 bytes | *l* (lower case L) | No | Yes
-[uint32](#value_numeric) | 5 bytes | *m* | No | Yes
+[uint32](#value_numeric)* | 5 bytes | *m* | No | Yes
 [int64](#value_numeric) | 9 bytes | *L* | No | Yes
-[uint64](#value_numeric) | 9 bytes | *M* | No | Yes
-[float16/half](#value_numeric) | 3 bytes | *h* | No | Yes
+[uint64](#value_numeric)* | 9 bytes | *M* | No | Yes
+[float16/half](#value_numeric)* | 3 bytes | *h* | No | Yes
 [float32/single](#value_numeric) | 5 bytes | *d* | No | Yes
 [float64/double](#value_numeric) | 9 bytes | *D* | No | Yes
 [high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
@@ -101,11 +102,13 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [array](#container_array) | 2+ bytes | *\[* and *\]* | Optional | Yes (if not empty)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
 
+\* Data type markers that are not defined in the UBJSON Specification (Draft 12)
+
 
 ## <a name="value_types"/>Value types
 
 ### <a name="value_null"/>Null
-The null value in is equivalent to the null value from the JSON specification.
+The `null` value in is equivalent to the null value from the JSON specification.
 
 #### Example
 In JSON:
@@ -124,14 +127,14 @@ In BJData (using block-notation):
 
 ---
 ### <a name="value_noop"/>No-Op
-There is no equivalent to no-op value in the original JSON specification. When 
+There is no equivalent to `no-op` value in the original JSON specification. When 
 decoding, No-Op values should be skipped. Also, they can only occur as elements 
 of a container.
 
 ---
 ### <a name="value_bool"/>Boolean
-A boolean type is is equivalent to the boolean value from the JSON 
-specification.
+A Boolean type is equivalent to the Boolean value (`true` or `false`) defined in 
+the JSON specification.
 
 #### Example
 In JSON:
@@ -178,7 +181,7 @@ and infinity are converted to [null](#value_null).
 - It is advisable to use the smallest applicable type when encoding a number.
 
 #### Integer
-All integer types are written in Big-Endian order.
+All integer types are written in **Big-Endian order**.
 
 #### Float
 - `float16` or half-precision values are written in [IEEE 754 single precision floating point 
@@ -242,9 +245,9 @@ In BJData (using block-notation):
 
 ---
 ### <a name="value_char"/>Char
-The char type in BJData is an unsigned byte meant to represent a single 
+The `char` type in BJData is an unsigned byte meant to represent a single 
 printable ASCII character (decimal values 0-127). It **must not** have a 
-decimal value larger than 127. It is functionally identical to the uint8 type, 
+decimal value larger than 127. It is functionally identical to the `uint8` type, 
 but semantically is meant to represent a character and not a numeric value.
 
 #### Example
@@ -266,7 +269,7 @@ BJData (using block-notation):
 
 ---
 ### <a name="value_string"/>String
-The string type in BJData is equivalent to the string type from the JSON 
+The `string` type in BJData is equivalent to the `string` type from the JSON 
 specification apart from that the BJData string value **requires** UTF-8 
 encoding.
 
@@ -292,7 +295,7 @@ BJData (using block-notation):
 See also [optimized format](#container_optimized) below.
 
 ### <a name="container_array"/>Array
-The array type in BJData is equivalent to the array type from the JSON 
+The `array` type in BJData is equivalent to the `array` type from the JSON 
 specification.
 
 #### Example
@@ -322,7 +325,7 @@ BJData (using block-notation):
 
 ---
 ### <a name="container_object"/>Object
-The object type in BJData is equivalent to the object type from the JSON 
+The `object` type in BJData is equivalent to the `object` type from the JSON 
 specification. Since value names can only be strings, the *S* (string) marker 
 **must not** be included since it is redundant.
 
@@ -353,14 +356,14 @@ BJData (using block-notation):
 ```
 
 ## <a name="container_optimized"/>Optimized Format
-Both container types support optional parameters that can help optimize the 
-container for better parsing performance and smaller size.
+Both container types (`array` and `object`) support optional parameters that can 
+help optimize the container for better parsing performance and smaller size.
 
 ### Type - *$*
 When a _type_ is specified, all value types stored in the container (either 
 array or object) are considered to be of that singular _type_ and as a result, 
 _type_ markers are omitted for each value within the container. This can be 
-thought of providing the ability to create a strongly typed container in BJData.
+thought of providing the ability to create a strongly-typed container in BJData.
 - If a _type_ is specified, it **must** be done so before a _count_.
 - If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise 
 it is impossible to tell when a container is ending, e.g. did you just parse 
@@ -373,10 +376,12 @@ it is impossible to tell when a container is ending, e.g. did you just parse
 
 ---
 ### Count - *\#*
-When a _count_ is specified, the parser is able to know ahead of time how many 
-child elements will be parsed. This allows the parser to pre-size any internal 
-construct used for parsing, verify that the promised number of child values 
-were found and avoid scanning for any terminating bytes while parsing.
+When a _count_ is followed by a single non-nagative integer record, i.e. one of
+`i,U,I,u,l,m,L,M`, it specifies the total child element count. This allows the 
+parser to pre-size any internal construct used for parsing, verify that the 
+promised number of child values were found and avoid scanning for any terminating 
+bytes while parsing. 
+
 - A _count_ can be specified without a type.
 
 #### Example (count of 64):
@@ -385,9 +390,8 @@ were found and avoid scanning for any terminating bytes while parsing.
 ```
 
 ### Optimized N-dimensional array
-
 When both _type_ and _count_ are specified and the _count_ marker `#` is followed 
-by `[`, the parser should expect the following sequence to be a 1-D array object with 
+by `[`, the parser should expect the following sequence to be a 1-D `array` with 
 zero or more (`ndim`) integer elements (`nx, ny, nz, ...`). This specifies an 
 `ndim`-dimensional array of uniform type specified by the _type_ marker after `$`. 
 The array data are serialized in the **row-major format**.
@@ -426,8 +430,7 @@ The following 2x3x4 3-D `uint8` array
 shall be stored as
 ```
  [[] [$][U] [#][[] [$][U][#][3] [2][3][4]
-    [1][9][6][0][2][9][3][1][8][0][9][6][6][4][2]
-    [7][8][5][1][2][3][3][2][6]
+    [1][9][6][0] [2][9][3][1] [8][0][9][6] [6][4][2][7] [8][5][1][2] [3][3][2][6]
 ```
 
 
@@ -445,7 +448,7 @@ _type_ markers for any contained value.
 
 ---
 ### Array Examples
-Optimized with count
+Optimized with _count_
 ```
 [[][#][i][5] // An array of 5 elements.
     [d][29.97]
@@ -455,7 +458,7 @@ Optimized with count
     [d][23.8889]
 // No end marker since a count was specified.
 ```
-Optimized with type & count
+Optimized with both _type_ and _count_
 ```
 [[][$][d][#][i][5] // An array of 5 float32 elements.
     [29.97] // Value type is known, so type markers are omitted.
@@ -468,7 +471,7 @@ Optimized with type & count
 
 ---
 ### Object Examples
-Optimized with count
+Optimized with _count_
 ```
 [{][#][i][3] // An object of 3 name:value pairs.
     [i][3][lat][d][29.976]
@@ -476,7 +479,7 @@ Optimized with count
     [i][3][alt][d][67.0]
 // No end marker since a count was specified.
 ```
-Optimized with type & count
+Optimized with both _type_ and _count_
 ```
 [{][$][d][#][i][3] // An object of 3 name:float32-value pairs.
     [i][3][lat][29.976] // Value type is known, so type markers are omitted.
@@ -491,12 +494,12 @@ If using both _count_ and _type_ optimisations, the marker itself represent the
 value thus saving repetition (since these types to not have a payload). 
 Additional requirements are:
 
-Strongly typed array of type true (boolean) and with a count of 512:
+Strongly typed array of type `true` (boolean) and with a _count_ of 512:
 ```
 [[][$][T][#][I][512]
 ```
 
-Strongly typed object of type null and with a count of 3:
+Strongly typed object of type `null` and with a _count_ of 3:
 ```
 [{][$][Z][#][i][3]
     [i][4][name] // name only, no value specified.
