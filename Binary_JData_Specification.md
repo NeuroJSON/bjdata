@@ -169,7 +169,7 @@ uint64| Yes | 0 | 18,446,744,073,709,551,615
 float16/half | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
 float32/single | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
 float64/double | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
-high-precision number | No | Infinite | Infinite
+high-precision number | Yes | Infinite | Infinite
 
 **Notes**:
 - Numeric values of infinity (and NaN) are to be encoded using their respective 
