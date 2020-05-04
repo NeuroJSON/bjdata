@@ -1,14 +1,21 @@
 # Binary JData Format Specification Development Guide
 
 We use this repository to gather feedback from the community regarding the 
-["Binary JData Format Specification"](UBJSON-Specification.md), or JData format. Such 
-feedback is crucial to finalize this file specification and help improve
-it in the future once disseminated. 
+["Binary JData Format Specification"](Binary_JData_Specification.md), or 
+Binary JData format. Such feedback is crucial to finalize this file 
+specification and help improve it in the future once disseminated. 
 
 The latest version of the Binary JData specification can be found in the file named 
-[UBJSON-Specification.md](UBJSON-Specification.md). The specification is written
+[Binary_JData_Specification.md](Binary_JData_Specification.md). The specification is written
 in the [Markdown format](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) 
 for convenient editing and version control.
+
+This specification was based upon the Universal Binary JSON (UBJSON) Specification
+[Draft 12](https://github.com/ubjson/universal-binary-json/tree/master/spec12)
+developed by Riyad Kalla and other UBJSON contributors. The MarkDown version 
+of this document was derived from the documentation included in the 
+[Py-ubjson](https://github.com/Iotic-Labs/py-ubjson/blob/dev-contrib/UBJSON-Specification.md)
+repository (Commit 5ce1fe7).
 
 ## How to participate
 
@@ -26,8 +33,6 @@ draft of this file specification, including
     RFC (Request for comments) commit (where the entire file is removed
     and re-added so that every line appears in such commit). One can
     write short comments as well as post replies on this RFC page. 
-  - The latest RFC commit is based on **Draft 2 (version v0.8)**. Please use
-    this link to comment.
   - To add a comment, you need to first register a github account, and then 
     browse the above RFC page. When hovering your cursor over each line, a 
     "plus" icon is displayed, clicking it will allow one to comment on a 
