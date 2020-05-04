@@ -172,22 +172,30 @@ float64/double | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754
 high-precision number | No | Infinite | Infinite
 
 **Notes**:
-- Numeric values of infinity (and NaN) are to be encoded as a 
-[null](#value_null) in all cases
+- Numeric values of infinity (and NaN) are to be encoded using their respective 
+IEEE 754 binary form; **this is different** from the UBJSON specification where NaN
+and infinity are converted to [null](#value_null).
 - It is advisable to use the smallest applicable type when encoding a number.
 
 #### Integer
 All integer types are written in Big-Endian order.
 
 #### Float
-- float32 values are written in [IEEE 754 single precision floating point 
+- `float16` or half-precision values are written in [IEEE 754 single precision floating point 
+format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
+structure:
+  - Bit 15 (1 bit) - sign
+  - Bit 14-10 (5 bits) - exponent
+  - Bit 9-0 (10 bits) - fraction (significant)
+
+- `float32` or single-precision values are written in [IEEE 754 single precision floating point 
 format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 31 (1 bit) - sign
   - Bit 30-23 (8 bits) - exponent
   - Bit 22-0 (23 bits) - fraction (significant)
 
-- float64 values are written in [IEEE 754 double precision floating point 
+- `float64` or double-precision values are written in [IEEE 754 double precision floating point 
 format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 63 (1 bit) - sign
@@ -197,8 +205,7 @@ structure:
 #### High-Precision
 These are encoded as a string and thus are only limited by the maximum string 
 size. Values **must** be written out in accordance with the original [JSON 
-number type specification](http://json.org). Infinity (and NaN) are to be 
-encoded as a [null](#value_null) value.
+number type specification](http://json.org).
 
 #### Examples
 Numeric values in JSON:
