@@ -1,50 +1,82 @@
-# Index
+Binary JData: An efficient interchange format for complex binary data
+============================================================
+
+- **Status of this document**: This document is current under development.
+- **Maintainer**: Qianqian Fang <q.fang at neu.edu>
+- **License**: Apache License, Version 2.0
+- **Version**: 0.4 (Draft 1.pre)
+- **Abstract**:
+
+> The Binary JData (BJData) Specification defines an efficient serialization 
+protocol for unambiguously storing complex and strongly-typed binary data found 
+in numerous application domains. The BJData specification is the binary counterpart
+to the JSON format, both of which are used to serialize complex data structures
+supported by the JData specification (http://openjdata.org). The BJData spec is 
+derived and extended from the Universal Binary JSON (UBJSON, http://ubjson.org) 
+specification (Draft 12). It adds supports for N-dimensional packed arrays and 
+extended binary data types.
+
+## Table of Content
+
 - [Introduction](#introduction)
 - [License](#license)
-- [Draft 12 specification](#draft12)
-  - [Data Format](#data_format)
-  - [Type overview](#type_overview)
+- [Format Specification](#format_specification)
+  - [Format overview](#format_overview)
+  - [Type summary](#type_summary)
   - [Value types](#value_types)
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
+- [Recommended File Specifiers](#recommended_file_specifiers)
+- [Acknowledgement](#acknowledgement)
+
+Introduction
+------------------------------
+
+`To be added`
+
+License
+------------------------------
+
+The Binary JData Specification is licensed under the 
+[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
 
 
-# <a name="introduction"/>Introduction
-For the official, most up-to-date, more verbose specification (with discussion and examples) of Universal Binary JSON please visit [ubjson.org](http://ubjson.org). Since at the time of writing (6th August 2015) neither said website nor the [community workspace git repository](https://github.com/thebuzzmedia/universal-binary-json) indicated what version the specification applies to, I made the decision to produce this minimal document to act as a reference in case the specification on ubjson.org changes. I contacted Riyad Kalla of [The Buzz Media](http://www.thebuzzmedia.com) (and maintainer of ubjson.org) and he confirmed to me that (at said point in time) the current version was indeed Draft 12.
+Format Specification
+------------------------------
 
+## <a name="format_overview"/>Format overview
 
-# <a name="license"/>License
-The UBJSON Specification is licensed under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
-
-
-# <a name="draft12"/>Draft 12 specification
-
-
-## <a name="data_format"/>Data Format
-
-A single construct with two optional segments (length and data) is used for all types:
+A single construct with two optional segments (length and data) is used for all 
+types:
 ```
 [type, 1 byte char]([integer numeric length])([data])
 ```
 Each element in the tuple is defined as:
-- **type** - A 1 byte ASCII char (**_Marker_**) used to indicate the type of the data following it.
+- **type** - A 1 byte ASCII char (**_Marker_**) used to indicate the type of 
+the data following it.
 
-- **length** (_optional_) - A positive, integer numeric type (uint8, int16, int32, int64) specifying the length of the following data payload.
+- **length** (_optional_) - A positive, integer numeric type (uint8, int16, 
+int32, int64) specifying the length of the following data payload.
 
-- **data** (_optional_) - A run of bytes representing the actual binary data for this type of value.
+- **data** (_optional_) - A run of bytes representing the actual binary data 
+for this type of value.
 
 ### Notes
-- Some values are simple enough that just writing the 1 byte ASCII marker into the stream is enough to represent the value (e.g. null) while others have a type that is specific enough that no length is needed as the length is implied by the type (e.g. int32) while others still require both a type and a length to communicate their value (e.g. string). Additionally some values (e.g. array) have additional (_optional_) parameters to improve decoding efficiency and/or to reduce size of the encoded value even further.
+- Some values are simple enough that just writing the 1 byte ASCII marker into 
+the stream is enough to represent the value (e.g. null) while others have a 
+type that is specific enough that no length is needed as the length is implied 
+by the type (e.g. int32) while others still require both a type and a length to 
+communicate their value (e.g. string). Additionally some values (e.g. array) 
+have additional (_optional_) parameters to improve decoding efficiency and/or 
+to reduce size of the encoded value even further.
 
-- The UBJSON specification requires that all numeric values be written in Big-Endian order.
+- The BJData specification requires that all numeric values be written in 
+Big-Endian order.
 
-- To store binary data, use a [strongly-typed](#container_optimized) array of uint8 values.
+- To store binary data, use a [strongly-typed](#container_optimized) array of 
+uint8 values.
 
-- _application/ubjson_ should be used as the mime type
-
-- _.ubj_ should be used a the file extension when storing UBJSON-encoded data is saved to a file
-
-## <a name="type_overview"/>Type overview
+## <a name="type_summary"/>Type summary
 
 Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 ---|---|---|---|---
@@ -66,7 +98,7 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
 
 
-## <a name="value_types"/>Value Types
+## <a name="value_types"/>Value types
 
 ### <a name="value_null"/>Null
 The null value in is equivalent to the null value from the JSON specification.
@@ -79,7 +111,7 @@ In JSON:
 }
 ```
 
-In UBJSON (using block-notation):
+In BJData (using block-notation):
 ```
 [{]
     [i][8][passcode][Z]
@@ -88,11 +120,14 @@ In UBJSON (using block-notation):
 
 ---
 ### <a name="value_noop"/>No-Op
-There is no equivalent to no-op value in the original JSON specification. When decoding, No-Op values should be skipped. Also, they can only occur as elements of a container.
+There is no equivalent to no-op value in the original JSON specification. When 
+decoding, No-Op values should be skipped. Also, they can only occur as elements 
+of a container.
 
 ---
 ### <a name="value_bool"/>Boolean
-A boolean type is is equivalent to the boolean value from the JSON specification.
+A boolean type is is equivalent to the boolean value from the JSON 
+specification.
 
 #### Example
 In JSON:
@@ -103,7 +138,7 @@ In JSON:
 }
 ```
 
-In UBJSON (using block-notation):
+In BJData (using block-notation):
 ```
 [{]
     [i][10][authorized][T]
@@ -113,7 +148,9 @@ In UBJSON (using block-notation):
 
 ---
 ### <a name="value_numeric"/>Numeric
-Unlike in JSON whith has a single _Number_ type (used for both integers and floating point numbers), UBJSON defines multiple types for integers. The minimum/maximum of values (inclusive) for each integer type are as follows:
+Unlike in JSON whith has a single _Number_ type (used for both integers and 
+floating point numbers), BJData defines multiple types for integers. The 
+minimum/maximum of values (inclusive) for each integer type are as follows:
 
 Type | Signed | Minimum | Maximum
 ---|---|---|---
@@ -127,25 +164,33 @@ float64 | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) 
 high-precision number | Yes | Infinite | Infinite
 
 **Notes**:
-- Numeric values of infinity (and NaN) are to be encoded as a [null](#value_null) in all cases
+- Numeric values of infinity (and NaN) are to be encoded as a 
+[null](#value_null) in all cases
 - It is advisable to use the smallest applicable type when encoding a number.
 
 #### Integer
 All integer types are written in Big-Endian order.
 
 #### Float
-- float32 values are written in [IEEE 754 single precision floating point format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following structure:
+- float32 values are written in [IEEE 754 single precision floating point 
+format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
+structure:
   - Bit 31 (1 bit) - sign
   - Bit 30-23 (8 bits) - exponent
   - Bit 22-0 (23 bits) - fraction (significant)
 
-- float64 values are written in [IEEE 754 double precision floating point format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following structure:
+- float64 values are written in [IEEE 754 double precision floating point 
+format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
+structure:
   - Bit 63 (1 bit) - sign
   - Bit 62-52 (11 bits) - exponent
   - Bit 51-0 (52 bits) - fraction (significant)
 
 #### High-Precision
-These are encoded as a string and thus are only limited by the maximum string size. Values **must** be written out in accordance with the original [JSON number type specification](http://json.org). Infinity (and NaN) are to be encoded as a [null](#value_null) value.
+These are encoded as a string and thus are only limited by the maximum string 
+size. Values **must** be written out in accordance with the original [JSON 
+number type specification](http://json.org). Infinity (and NaN) are to be 
+encoded as a [null](#value_null) value.
 
 #### Examples
 Numeric values in JSON:
@@ -164,7 +209,7 @@ Numeric values in JSON:
 }
 ```
 
-In UBJSON (using block-notation):
+In BJData (using block-notation):
 ```
 [{]
     [i][4][int8][i][16]
@@ -182,7 +227,10 @@ In UBJSON (using block-notation):
 
 ---
 ### <a name="value_char"/>Char
-The char type in UBJSON is an unsigned byte meant to represent a single printable ASCII character (decimal values 0-127). It **must not** have a decimal value larger than 127. It is functionally identical to the uint8 type, but semantically is meant to represent a character and not a numeric value.
+The char type in BJData is an unsigned byte meant to represent a single 
+printable ASCII character (decimal values 0-127). It **must not** have a 
+decimal value larger than 127. It is functionally identical to the uint8 type, 
+but semantically is meant to represent a character and not a numeric value.
 
 #### Example
 Char values in JSON:
@@ -193,7 +241,7 @@ Char values in JSON:
 }
 ```
 
-UBJSON (using block-notation):
+BJData (using block-notation):
 ```
 [{]
     [i][8][rolecode][C][a]
@@ -203,7 +251,9 @@ UBJSON (using block-notation):
 
 ---
 ### <a name="value_string"/>String
-The string type in UBJSON is equivalent to the string type from the JSON specification apart from that the UBJSON string value **requires** UTF-8 encoding.
+The string type in BJData is equivalent to the string type from the JSON 
+specification apart from that the BJData string value **requires** UTF-8 
+encoding.
 
 #### Example
 String values in JSON:
@@ -214,7 +264,7 @@ String values in JSON:
 }
 ```
 
-UBJSON (using block-notation):
+BJData (using block-notation):
 ```
 [{]
     [i][8][username][S][i][5][rkalla]
@@ -227,7 +277,8 @@ UBJSON (using block-notation):
 See also [optimized format](#container_optimized) below.
 
 ### <a name="container_array"/>Array
-The array type in UBJSON is equivalent to the array type from the JSON specification.
+The array type in BJData is equivalent to the array type from the JSON 
+specification.
 
 #### Example
 Array in JSON:
@@ -242,7 +293,7 @@ Array in JSON:
 ]
 ```
 
-UBJSON (using block-notation):
+BJData (using block-notation):
 ```
 [[]
     [Z]
@@ -256,7 +307,9 @@ UBJSON (using block-notation):
 
 ---
 ### <a name="container_object"/>Object
-The object type in UBJSON is equivalent to the object type from the JSON specification. Since value names can only be strings, the *S* (string) marker **must not** be included since it is redundant.
+The object type in BJData is equivalent to the object type from the JSON 
+specification. Since value names can only be strings, the *S* (string) marker 
+**must not** be included since it is redundant.
 
 #### Example
 
@@ -272,7 +325,7 @@ Object in JSON:
 }
 ```
 
-UBJSON (using block-notation):
+BJData (using block-notation):
 ```
 [{]
     [i][4][post][{]
@@ -285,12 +338,18 @@ UBJSON (using block-notation):
 ```
 
 ## <a name="container_optimized"/>Optimized Format
-Both container types support optional parameters that can help optimize the container for better parsing performance and smaller size.
+Both container types support optional parameters that can help optimize the 
+container for better parsing performance and smaller size.
 
 ### Type - *$*
-When a _type_ is specified, all value types stored in the container (either array or object) are considered to be of that singular _type_ and as a result, _type_ markers are omitted for each value within the container. This can be thought of providing the ability to create a strongly typed container in UBJSON.
+When a _type_ is specified, all value types stored in the container (either 
+array or object) are considered to be of that singular _type_ and as a result, 
+_type_ markers are omitted for each value within the container. This can be 
+thought of providing the ability to create a strongly typed container in BJData.
 - If a _type_ is specified, it **must** be done so before a _count_.
-- If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise it is impossible to tell when a container is ending, e.g. did you just parse *]* or the int8 value of 93?)
+- If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise 
+it is impossible to tell when a container is ending, e.g. did you just parse 
+*]* or the int8 value of 93?)
 
 #### Example (string type):
 ```
@@ -299,7 +358,10 @@ When a _type_ is specified, all value types stored in the container (either arra
 
 ---
 ### Count - *\#*
-When a _count_ is specified, the parser is able to know ahead of time how many child elements will be parsed. This allows the parser to pre-size any internal construct used for parsing, verify that the promised number of child values were found and avoid scanning for any terminating bytes while parsing.
+When a _count_ is specified, the parser is able to know ahead of time how many 
+child elements will be parsed. This allows the parser to pre-size any internal 
+construct used for parsing, verify that the promised number of child values 
+were found and avoid scanning for any terminating bytes while parsing.
 - A _count_ can be specified without a type.
 
 #### Example (count of 64):
@@ -311,10 +373,13 @@ When a _count_ is specified, the parser is able to know ahead of time how many c
 - A _count_ **must** be >= 0.
 - A _count_ can be specified by itself.
 - If a _count_ is specified the container **must not** specify an end-marker.
-- A container that specifies a _count_ **must** contain the specified number of child elements.
+- A container that specifies a _count_ **must** contain the specified number of 
+child elements.
 - If a _type_ is specified, it **must** be done so before count.
-- If a _type_ is specified, a _count_ **must** also be specified. A _type_ cannot be specified by itself.
-- A container that specifies a _type_ **must not** contain any additional _type_ markers for any contained value.
+- If a _type_ is specified, a _count_ **must** also be specified. A _type_ 
+cannot be specified by itself.
+- A container that specifies a _type_ **must not** contain any additional 
+_type_ markers for any contained value.
 
 ---
 ### Array Examples
@@ -360,7 +425,9 @@ Optimized with type & count
 
 ---
 ### Special case: Marker-only types (null, no-op & boolean)
-If using both _count_ and _type_ optimisations, the marker itself represent the value thus saving repetition (since these types to not have a payload). Additional requirements are:
+If using both _count_ and _type_ optimisations, the marker itself represent the 
+value thus saving repetition (since these types to not have a payload). 
+Additional requirements are:
 
 Strongly typed array of type true (boolean) and with a count of 512:
 ```
@@ -374,3 +441,19 @@ Strongly typed object of type null and with a count of 3:
     [i][8][password]
     [i][5][email]
 ```
+
+Recommended File Specifiers
+------------------------------
+
+For binary JData files, the recommended file suffix is **`".bjd"`**.
+The MIME type for a binary JData document is **`"application/jdata-binary"`**
+
+Acknowledgement
+------------------------------
+
+The BJData spec is derived from the Universal Binary JSON (UBJSON, http://ubjson.org) 
+specification (Draft 12) developed by Riyad Kalla and other UBJSON contributors.
+
+The initial version of this MarkDown-formatted specification was derived from the 
+documentation included in the [Py-ubjson](https://github.com/Iotic-Labs/py-ubjson/blob/dev-contrib/UBJSON-Specification.md) 
+repository (Commit 5ce1fe7).
