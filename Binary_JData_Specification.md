@@ -20,13 +20,13 @@ extended binary data types.
 
 - [Introduction](#introduction)
 - [License](#license)
-- [Format Specification](#format_specification)
+- [Format Specification](#format-specification)
   - [Format overview](#format_overview)
   - [Type summary](#type_summary)
   - [Value types](#value_types)
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
-- [Recommended File Specifiers](#recommended_file_specifiers)
+- [Recommended File Specifiers](#recommended-file-specifiers)
 - [Acknowledgement](#acknowledgement)
 
 Introduction
