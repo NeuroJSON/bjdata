@@ -1,0 +1,9 @@
+[submodule "lib/matlab/jsonlab"]
+	path = lib/matlab/jsonlab
+	url = https://github.com/fangq/jsonlab.git
+[submodule "lib/matlab/zmat"]
+	path = lib/matlab/zmat
+	url = https://github.com/fangq/zmat.git
+[submodule "lib/c/ubj"]
+	path = lib/c/ubj
+	url = https://github.com/fangq/ubj.git
