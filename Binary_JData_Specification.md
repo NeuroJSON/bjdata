@@ -87,10 +87,14 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [int8](#value_numeric) | 2 bytes | *i* | No | Yes
 [uint8](#value_numeric) | 2 bytes | *U* | No | Yes
 [int16](#value_numeric) | 3 bytes | *I* (upper case i) | No | Yes
+[uint16](#value_numeric) | 3 bytes | *u* | No | Yes
 [int32](#value_numeric) | 5 bytes | *l* (lower case L) | No | Yes
+[uint32](#value_numeric) | 5 bytes | *m* | No | Yes
 [int64](#value_numeric) | 9 bytes | *L* | No | Yes
-[float32](#value_numeric) | 5 bytes | *d* | No | Yes
-[float64](#value_numeric) | 9 bytes | *D* | No | Yes
+[uint64](#value_numeric) | 9 bytes | *M* | No | Yes
+[float16/half](#value_numeric) | 3 bytes | *h* | No | Yes
+[float32/single](#value_numeric) | 5 bytes | *d* | No | Yes
+[float64/double](#value_numeric) | 9 bytes | *D* | No | Yes
 [high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
 [char](#value_char) | 2 bytes | *C* | No | Yes
 [string](#value_string) | 1 byte + int num val + string byte len | *S* | Yes | Yes (if not empty)
@@ -155,13 +159,17 @@ minimum/maximum of values (inclusive) for each integer type are as follows:
 Type | Signed | Minimum | Maximum
 ---|---|---|---
 int8 | Yes | -128 | 127
-uint8 | No | 0 | 255
-int16 | Yes | -32,768 | 32,767
-int32 | Yes | -2,147,483,648 | 2,147,483,647
-int64 | Yes | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807
-float32 | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
-float64 | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
-high-precision number | Yes | Infinite | Infinite
+uint8 | Yes | 0 | 255
+int16 | No | -32,768 | 32,767
+uint16| Yes | 0 | 65,535
+int32 | No | -2,147,483,648 | 2,147,483,647
+uint32| Yes | 0 | 4,294,967,295
+int64 | No | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807
+uint64| Yes | 0 | 18,446,744,073,709,551,615
+float16/half | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
+float32/single | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
+float64/double | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
+high-precision number | No | Infinite | Infinite
 
 **Notes**:
 - Numeric values of infinity (and NaN) are to be encoded as a 
@@ -259,7 +267,7 @@ encoding.
 String values in JSON:
 ```json
 {
-    "username": "rkalla",
+    "username": "andy",
     "imagedata": "...huge string payload..."
 }
 ```
@@ -267,7 +275,7 @@ String values in JSON:
 BJData (using block-notation):
 ```
 [{]
-    [i][8][username][S][i][5][rkalla]
+    [i][8][username][S][i][4][andy]
     [i][9][imagedata][S][l][2097152][...huge string payload...]
 [}]
 ```
@@ -318,9 +326,9 @@ Object in JSON:
 {
     "post": {
         "id": 1137,
-        "author": "rkalla",
+        "author": "Andy",
         "timestamp": 1364482090592,
-        "body": "I totally agree!"
+        "body": "The quick brown fox jumps over the lazy dog"
     }
 }
 ```
@@ -330,9 +338,9 @@ BJData (using block-notation):
 [{]
     [i][4][post][{]
         [i][2][id][I][1137]
-        [i][6][author][S][i][5][rkalla]
+        [i][6][author][S][i][4][Andy]
         [i][9][timestamp][L][1364482090592]
-        [i][4][body][S][i][16][I totally agree!]
+        [i][4][body][S][i][43][The quick brown fox jumps over the lazy dog]
     [}]
 [}]
 ```
@@ -368,6 +376,56 @@ were found and avoid scanning for any terminating bytes while parsing.
 ```
 [#][i][64]
 ```
+
+### Optimized N-dimensional array
+
+When both _type_ and _count_ are specified and the _count_ marker `#` is followed 
+by `[`, the parser should expect the following sequence to be a 1-D array object with 
+zero or more (`ndim`) integer elements (`nx, ny, nz, ...`). This specifies an 
+`ndim`-dimensional array of uniform type specified by the _type_ marker after `$`. 
+The array data are serialized in the **row-major format**.
+
+For example, the below two block sequences both represent a `nx*ny*nz*...` array of
+uniform numeric type:
+
+```
+[[] [$] [type] [#] [[] [$] [nx type] [#] [ndim type] [ndim] [nx ny nz ...]  [nx*ny*nz*...*sizeof(type)]
+  or
+[[] [$] [type] [#] [[] [nx type] [nx] [ny type] [ny] [nz type] [nz] ... []] [nx*ny*nz*...*sizeof(type)]
+```
+where `ndim` is the number of dimensions, and `nx`, `ny`, and `nz` ... are 
+all non-negative numbers specifying the dimensions of the N-dimensional array.
+`nz/ny/nz/ndim` types must be one of the integer types (`i,U,I,u,l,m,L,M`). 
+The binary data of the N-dimensional array is then serialized in the **row-major** 
+format (similar to C, C++, Javascript or Python) order.
+
+
+#### Example (a 2x3x4 uint8 array):
+The following 2x3x4 3-D `uint8` array 
+```
+{
+   "a": [
+          [1,9,6,0],
+          [2,9,3,1],
+          [8,0,9,6]
+      ],
+      [
+          [6,4,2,7],
+          [8,5,1,2],
+          [3,3,2,6]
+      ]
+}
+```
+shall be stored as
+```
+[{]
+ [U][1][a]
+ [[] [$][U] [#][[] [$][U][#][3] [2][3][4]
+    [1][9][6][0][2][9][3][1][8][0][9][6][6][4][2]
+    [7][8][5][1][2][3][3][2][6]
+[}]```
+
+
 
 ### Additional rules
 - A _count_ **must** be >= 0.
