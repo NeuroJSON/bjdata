@@ -175,9 +175,9 @@ float64/double | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754
 high-precision number | Yes | Infinite | Infinite
 
 **Notes**:
-- Numeric values of infinity (and NaN) are to be encoded using their respective 
-IEEE 754 binary form; **this is different** from the UBJSON specification where NaN
-and infinity are converted to [null](#value_null).
+- Numeric values of `+infinity`, `-infinity` and `NaN` are to be encoded using their respective 
+IEEE 754 binary form; **this is different** from the UBJSON specification where `NaN`
+and infinity are converted to [`null`](#value_null).
 - It is advisable to use the smallest applicable type when encoding a number.
 
 #### Integer
