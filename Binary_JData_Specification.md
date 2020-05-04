@@ -403,8 +403,8 @@ format (similar to C, C++, Javascript or Python) order.
 #### Example (a 2x3x4 uint8 array):
 The following 2x3x4 3-D `uint8` array 
 ```
-{
-   "a": [
+[
+     [
           [1,9,6,0],
           [2,9,3,1],
           [8,0,9,6]
@@ -414,17 +414,14 @@ The following 2x3x4 3-D `uint8` array
           [8,5,1,2],
           [3,3,2,6]
       ]
-}
+]
 ```
 shall be stored as
 ```
-[{]
- [U][1][a]
  [[] [$][U] [#][[] [$][U][#][3] [2][3][4]
     [1][9][6][0][2][9][3][1][8][0][9][6][6][4][2]
     [7][8][5][1][2][3][3][2][6]
-[}]```
-
+```
 
 
 ### Additional rules
