@@ -7,3 +7,7 @@
 [submodule "lib/c/ubj"]
 	path = lib/c/ubj
 	url = https://github.com/fangq/ubj.git
+[submodule "lib/python/py-ubjson"]
+	path = lib/python/py-ubjson
+	url = https://github.com/fangq/py-ubjson.git
+	branch = bjdata
