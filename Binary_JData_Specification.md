@@ -32,7 +32,62 @@ extended binary data types.
 Introduction
 ------------------------------
 
-`To be added`
+The Javascript Object Notation (JSON) format, formally known as the ECMA-404 
+or ISO21778:2017 standard, is ubiquitously used in today's web and native 
+applications. JSON bears numerous advantages, such as human readability, 
+generality for accommodating complex hierarchical data, self-documenting, and 
+abundant existing free and commercial libraries. However, its utility is largely 
+restricted to storage of lightweight textural data, and has very limited presence 
+in many data-intensive and performance-demanding applications, such as databases,
+medical imaging, and scientific data storage.
+ 
+The lack of support to strongly-typed and binary data is among the main 
+barriers for JSON to gain attractions in these domains. In recent years, 
+efforts to address these limitation have resulted in an array of versatile binary 
+JSON formats, such as BSON (Binary JSON, http://bson.org), UBJSON (Universal Binary 
+JSON, http://ubjson.org), MessagePack (https://msgpack.org), CBOR (Concise Binary 
+Object Representation, [RFC 7049]) etc. These binary JSON 
+counterparts are broadly used in speed-sensitive data processing applications and
+address various needs from diverse applications.
+ 
+To enable findable, accessible, interoperable, and reusable (FAIR) data in 
+scientific data storage and management, we have created the **OpenJData Initiative**
+(http://openjdata.org) to develop _portable, human-readable and high-performance_ 
+data annotation and serialization open-standards, aiming at facilitating 
+scientific researchers, IT engineers, as well as general data users efficiently 
+annotating and storing complex data structures arising in diverse domains.
+ 
+The OpenJData framework first converts complex data structures, such as N-D
+arrays, trees, tables and graphs into easy-to-serialize portable data annotations
+via the **JData Specification** (https://github.com/fangq/jdata) and then serializes 
+and stores the annotated JData constructs using widely-supported data formats. 
+To balance data portability, readability and efficiency, OpenJData defines a 
+**dual-interface**: a text-based format **syntactically compatible with JSON format**,
+and a binary-JSON format to achieve significantly smaller file sizes and fast 
+encoding/decoding.
+ 
+The Binary JData (BJData) format is the **official binary interface** for the JData 
+specification. It is derived from the widely supported UBJSON Specification 
+Draft 12 (https://github.com/ubjson/universal-binary-json), and adds native
+support for N-dimensional packed arrays - an essential data structure for
+scientific data - as well as extended binary data types including unsigned
+integer types and half-precision floating-point numbers. The new data constructs
+also allow a BJData file to store binary arrays larger than 4 GB in size, which
+is not currently possible with MessagePack (maximum data record size is limited
+to 4 GB) and BSON (maximal total file size is 4 GB).
+ 
+A key rationale to derive the BJData format based upon UBJSON as oppose to 
+other more popular binary JSON-like formats, such as BSON, CBOR and MessagePack, 
+is largely due to UBJSON's **quasi-human-readability** - a characteristic that is 
+not present in almost all other binary formats. This is because all data semantic 
+elements in a UBJSON/BJData file, e.g. the "name" fields and data-type markers, 
+are defined in human-readable strings. The resulting binary files are not only
+capable of storing complex and hierarchical binary data structures, but also 
+directly readable using an editor with no or minimal processing. We anticipate 
+such unique capability, combined with the highly portable JData annotation keywords,
+make a data file self-explanatory, easy to reuse, and easy to inter-operate with
+complex applications.
+
 
 License
 ------------------------------
