@@ -46,7 +46,7 @@ barriers for JSON to gain attractions in these domains. In recent years,
 efforts to address these limitation have resulted in an array of versatile binary 
 JSON formats, such as BSON (Binary JSON, http://bson.org), UBJSON (Universal Binary 
 JSON, http://ubjson.org), MessagePack (https://msgpack.org), CBOR (Concise Binary 
-Object Representation, [RFC 7049]) etc. These binary JSON 
+Object Representation, [RFC 7049], https://cbor.io) etc. These binary JSON 
 counterparts are broadly used in speed-sensitive data processing applications and
 address various needs from diverse applications.
  
@@ -55,7 +55,7 @@ scientific data storage and management, we have created the **OpenJData Initiati
 (http://openjdata.org) to develop _portable, human-readable and high-performance_ 
 data annotation and serialization open-standards, aiming at facilitating 
 scientific researchers, IT engineers, as well as general data users efficiently 
-annotating and storing complex data structures arising in diverse domains.
+annotating and storing complex data structures arose in diverse domains.
  
 The OpenJData framework first converts complex data structures, such as N-D
 arrays, trees, tables and graphs into easy-to-serialize portable data annotations
@@ -69,12 +69,12 @@ encoding/decoding.
 The Binary JData (BJData) format is the **official binary interface** for the JData 
 specification. It is derived from the widely supported UBJSON Specification 
 Draft 12 (https://github.com/ubjson/universal-binary-json), and adds native
-support for N-dimensional packed arrays - an essential data structure for
-scientific data - as well as extended binary data types including unsigned
+support for **N-dimensional packed arrays** - an essential data structure for
+scientific applications - as well as extended binary data types including unsigned
 integer types and half-precision floating-point numbers. The new data constructs
 also allow a BJData file to store binary arrays larger than 4 GB in size, which
 is not currently possible with MessagePack (maximum data record size is limited
-to 4 GB) and BSON (maximal total file size is 4 GB).
+to 4 GB) and BSON (maximum total file size is 4 GB).
  
 A key rationale to derive the BJData format based upon UBJSON as oppose to 
 other more popular binary JSON-like formats, such as BSON, CBOR and MessagePack, 
