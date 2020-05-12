@@ -30,8 +30,7 @@ draft of this file specification, including
     question, report a bug, provide a feature request, or simply propose
     general discussions. Please use URLs or keywords to link your discussion 
     to a specific line/section/topic in the document.
-- [Write short comments on Request for Comments (RFC) commits]
-(https://github.com/OpenJData/bjdata/commit/2f352210f928af9efd89f47c845d8e68c5b9bbc2)
+- [Write short comments on Request for Comments (RFC) commits](https://github.com/OpenJData/bjdata/commit/2f352210f928af9efd89f47c845d8e68c5b9bbc2)
   - A milestone version of the specification will be associated with an
     RFC (Request for comments) commit (where the entire file is removed
     and re-added so that every line appears in such commit). One can
