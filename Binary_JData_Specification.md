@@ -1,7 +1,7 @@
 Binary JData: A portable interchange format for complex binary data
 ============================================================
 
-- **Status of this document**: This document is currently under development.
+- **Status of this document**: Request for comments.
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
 - **Version**: 0.5 (Draft 1)

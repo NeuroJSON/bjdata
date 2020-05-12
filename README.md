@@ -15,7 +15,7 @@ for convenient editing and version control.
 This specification was based upon the Universal Binary JSON (UBJSON) Specification
 [Draft 12](https://github.com/ubjson/universal-binary-json/tree/master/spec12)
 developed by Riyad Kalla and other UBJSON contributors. The MarkDown version 
-of this document was derived from the documentation included in the 
+of this specification was derived from the documentation included in the 
 [Py-ubjson](https://github.com/Iotic-Labs/py-ubjson/blob/dev-contrib/UBJSON-Specification.md)
 repository (Commit 5ce1fe7).
 
