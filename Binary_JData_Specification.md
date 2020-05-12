@@ -1,4 +1,4 @@
-Binary JData: An efficient interchange format for complex binary data
+Binary JData: A portable interchange format for complex binary data
 ============================================================
 
 - **Status of this document**: This document is currently under development.
@@ -80,7 +80,7 @@ to 4 GB) and BSON (maximum total file size is 4 GB).
 A key rationale for basing  the BJData format upon UBJSON as opposed to 
 other more popular binary JSON-like formats, such as BSON, CBOR and MessagePack, 
 is UBJSON's **quasi-human-readability** - a unique characteristic that is 
-Absent from almost all other binary formats. This is because all data semantic 
+absent from almost all other binary formats. This is because all data semantic 
 elements in a UBJSON/BJData file, e.g. the "name" fields and data-type markers, 
 are defined in human-readable strings. The resulting binary files are not only
 capable of storing complex and hierarchical binary data structures, but also 
@@ -128,7 +128,7 @@ have additional (_optional_) parameters to improve decoding efficiency and/or
 to reduce the size of the encoded value even further.
 
 - The BJData specification requires that all numeric values be written in 
-Big-Endian order.
+**Big-Endian order**.
 
 - The `array` and `object` data types are **container** types, similar to JSON
 arrays and objects. They help partition and organize data records of all types, 
@@ -138,6 +138,13 @@ including container types, into composite and complex records.
 reduce data file sizes as it extracts common data type markers to the header. It
 also helps a parser to pre-allocate necessary memory buffers before reading the 
 data payload.
+
+In the following sections, we use a **block-notation** to illustrate the layout
+of the encoded data. In this notation, the data type markers and individual 
+data payloads are enclosed by a pair of `[]`, strictly for illustration purposes.
+Both illustration markers `[` and `]` as well as the whitespaces between these 
+data elements, if present, shall be ignored when performing the actual data storage.
+
 
 
 ## <a name="type_summary"/>Type summary
@@ -192,7 +199,7 @@ In BJData (using block-notation):
 ### <a name="value_noop"/>No-Op
 There is no equivalent to the `no-op` value in the original JSON specification. When 
 decoding, No-Op values should be skipped. Also, they can only occur as elements 
-of a container.
+of an `array` construct.
 
 The intended usage of the `no-op` value is as a valueless signal between a 
 producer (most likely a server) and a consumer (most likely a client) to indicate 
