@@ -127,8 +127,9 @@ communicate their value (e.g. `string`). In addition, some values (e.g. `array`)
 have additional (_optional_) parameters to improve decoding efficiency and/or 
 to reduce the size of the encoded value even further.
 
-- The BJData specification requires that all numeric values be written in 
-**Big-Endian order**.
+- The BJData specification (since Draft-2) requires that all numeric values be
+written in the **Little-Endian order**. This is a breaking feature compared to 
+BJData Draft-1 and UBJSON Draft-12, where numeric values are in Big-Endian order.
 
 - The `array` and `object` data types are **container** types, similar to JSON
 arrays and objects. They help partition and organize data records of all types, 
@@ -257,9 +258,13 @@ and infinity are converted to [`null`](#value_null).
 
 #### Integer
 All integer types (`uint8`, `int8`, `uint16`, `int16`, `uint32`, `int32`, `uint64` and 
-`int64`) are written in **Big-Endian order**.
+`int64`) are written in **Little-Endian order** (this is different from UBJSON, where all
+integers are wrirten Big-Endian order).
 
 #### Float
+All float types (`half`, `single`, `double` are written in **Little-Endian order** 
+(this is different from UBJSON which does not specify the endianness of floats).
+
 - `float16` or half-precision values are written in [IEEE 754 half precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-2008_revision), which has the following 
 structure:
@@ -280,6 +285,7 @@ structure:
   - Bit 63 (1 bit) - sign
   - Bit 62-52 (11 bits) - exponent
   - Bit 51-0 (52 bits) - fraction (significant)
+
 
 #### High-Precision
 These are encoded as a string and thus are only limited by the maximum string 
