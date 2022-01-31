@@ -4,7 +4,7 @@ Binary JData: A portable interchange format for complex binary data
 - **Status of this document**: Request for comments.
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 0.5 (Draft 1)
+- **Version**: 1 (Draft 2 - work-in-progress)
 - **Abstract**:
 
 > The Binary JData (BJData) Specification defines an efficient serialization 
@@ -293,8 +293,10 @@ Numeric values in JSON:
     "int8": 16,
     "uint8": 255,
     "int16": 32767,
+    "uint16": 32768,
     "int32": 2147483647,
     "int64": 9223372036854775807,
+    "uint64": 9223372036854775808,
     "float32": 3.14,
     "float64": 113243.7863123,
     "huge1": "3.14159265358979323846",
@@ -308,9 +310,11 @@ In BJData (using block-notation):
 [{]
     [i][4][int8][i][16]
     [i][5][uint8][U][255]
-    [i][5][int16][I]32767]
+    [i][5][int16][I][32767]
+    [i][6][uint16][u][32768]
     [i][5][int32][l][2147483647]
     [i][5][int64][L][9223372036854775807]
+    [i][6][uint64][M][9223372036854775808]
     [i][7][float32][d][3.14]
     [i][7][float64][D][113243.7863123]
     [i][5][huge1][H][i][22][3.14159265358979323846]
