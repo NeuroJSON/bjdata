@@ -4,7 +4,7 @@ Binary JData: A portable interchange format for complex binary data
 - **Status of this document**: Request for comments.
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 0.5 (Draft 1)
+- **Version**: 1 (Draft 2 - work-in-progress)
 - **Abstract**:
 
 > The Binary JData (BJData) Specification defines an efficient serialization 
@@ -127,8 +127,9 @@ communicate their value (e.g. `string`). In addition, some values (e.g. `array`)
 have additional (_optional_) parameters to improve decoding efficiency and/or 
 to reduce the size of the encoded value even further.
 
-- The BJData specification requires that all numeric values be written in 
-**Big-Endian order**.
+- The BJData specification (since Draft-2) requires that all numeric values be
+written in the **Little-Endian order**. This is a breaking feature compared to 
+BJData Draft-1 and UBJSON Draft-12, where numeric values are in Big-Endian order.
 
 - The `array` and `object` data types are **container** types, similar to JSON
 arrays and objects. They help partition and organize data records of all types, 
@@ -257,9 +258,13 @@ and infinity are converted to [`null`](#value_null).
 
 #### Integer
 All integer types (`uint8`, `int8`, `uint16`, `int16`, `uint32`, `int32`, `uint64` and 
-`int64`) are written in **Big-Endian order**.
+`int64`) are written in **Little-Endian order** (this is different from UBJSON, where all
+integers are wrirten Big-Endian order).
 
 #### Float
+All float types (`half`, `single`, `double` are written in **Little-Endian order** 
+(this is different from UBJSON which does not specify the endianness of floats).
+
 - `float16` or half-precision values are written in [IEEE 754 half precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-2008_revision), which has the following 
 structure:
@@ -281,6 +286,7 @@ structure:
   - Bit 62-52 (11 bits) - exponent
   - Bit 51-0 (52 bits) - fraction (significant)
 
+
 #### High-Precision
 These are encoded as a string and thus are only limited by the maximum string 
 size. Values **must** be written out in accordance with the original [JSON 
@@ -293,8 +299,10 @@ Numeric values in JSON:
     "int8": 16,
     "uint8": 255,
     "int16": 32767,
+    "uint16": 32768,
     "int32": 2147483647,
     "int64": 9223372036854775807,
+    "uint64": 9223372036854775808,
     "float32": 3.14,
     "float64": 113243.7863123,
     "huge1": "3.14159265358979323846",
@@ -308,9 +316,11 @@ In BJData (using block-notation):
 [{]
     [i][4][int8][i][16]
     [i][5][uint8][U][255]
-    [i][5][int16][I]32767]
+    [i][5][int16][I][32767]
+    [i][6][uint16][u][32768]
     [i][5][int32][l][2147483647]
     [i][5][int64][L][9223372036854775807]
+    [i][6][uint64][M][9223372036854775808]
     [i][7][float32][d][3.14]
     [i][7][float64][D][113243.7863123]
     [i][5][huge1][H][i][22][3.14159265358979323846]
