@@ -259,7 +259,7 @@ and infinity are converted to [`null`](#value_null).
 #### Integer
 All integer types (`uint8`, `int8`, `uint16`, `int16`, `uint32`, `int32`, `uint64` and 
 `int64`) are written in **Little-Endian order** (this is different from UBJSON, where all
-integers are wrirten Big-Endian order).
+integers are written in Big-Endian order).
 
 #### Float
 All float types (`half`, `single`, `double` are written in **Little-Endian order** 
