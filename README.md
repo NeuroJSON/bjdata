@@ -25,7 +25,7 @@ Libraries that support this specification include
 - C: **ubj** (Github: https://github.com/fangq/ubj)
 - C++: **JSON for Modern C++** (with this patch https://github.com/nlohmann/json/pull/3336)
 
-**Acknowledgement**: This specification is developed as part of the NeuroJSON project
+**Acknowledgement**: This specification was developed as part of the NeuroJSON project
 (http://neurojson.org), with funding support from the US National Institute of Health (NIH) under
 grant [U24-NS124027](https://reporter.nih.gov/project-details/10308329) (PI: [Qianqian Fang](http://fanglab.org)).
 
