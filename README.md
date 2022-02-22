@@ -45,7 +45,7 @@ draft of this file specification, including
     RFC (Request for comments) commit (where the entire file is removed
     and re-added so that every line appears in such commit). One can
     write short comments as well as post replies on this RFC page. 
-  - The latest RFC commit is based on **Draft 1 (version v0.5)**. Please use
+  - The latest RFC commit is based on **Version 1 Draft-2**. Please use
     [this link](https://github.com/NeuroJSON/bjdata/commit/2f352210f928af9efd89f47c845d8e68c5b9bbc2) to comment.
   - To add a comment, you need to first register a github account, and then 
     browse the above RFC page. When hovering your cursor over each line, a 
@@ -73,7 +73,7 @@ please follow the below steps
     files in your browser directly, or download to your local folder, and 
     edit the files using a text editor;
   - once your revision is complete, please "commit" and "push" it to your forked
-    git repository. Then you should create a pull-request against the upstream
+    git repository. Then you should create a pull-request (PR) against the upstream
     repository (i.e., `NeuroJSON/bjdata`). Please select "Compare cross forks" and 
     select `"NeuroJSON/bjdata"` as "base fork". Please write a descriptive title for
     your pull-request. The project maintainer will review your updates
