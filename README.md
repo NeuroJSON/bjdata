@@ -67,7 +67,7 @@ please follow the below steps
 
 - Fork this repository and make updates, then create a pull-request
   - Please first register an account on github, then, browse the 
-    [JData repository](https://github.com/NeuroJSON/bjdata);
+    [BJData Spec repository](https://github.com/NeuroJSON/bjdata);
     on the top-right of this page, find and click the "Fork" button.
   - once you fork the JData project to your own repository, you may edit the
     files in your browser directly, or download to your local folder, and 
