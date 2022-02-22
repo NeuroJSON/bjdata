@@ -5,6 +5,7 @@ Binary JData: A portable interchange format for complex binary data
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
 - **Version**: 1 (Draft 2)
+- **Last Stable Release**: [Version 1 (Draft 2)](https://github.com/NeuroJSON/bjdata/blob/Draft_2/Binary_JData_Specification.md)
 - **Abstract**:
 
 > The Binary JData (BJData) Specification defines an efficient serialization 
