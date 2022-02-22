@@ -1,16 +1,22 @@
 [submodule "lib/matlab/jsonlab"]
 	path = lib/matlab/jsonlab
-	url = https://github.com/fangq/jsonlab.git
+	url = https://github.com/NeuroJSON/jsonlab.git
 [submodule "lib/matlab/zmat"]
 	path = lib/matlab/zmat
 	url = https://github.com/fangq/zmat.git
 [submodule "lib/c/ubj"]
 	path = lib/c/ubj
 	url = https://github.com/fangq/ubj.git
-[submodule "lib/python/py-ubjson"]
+[submodule "lib/cpp/json"]
+	path = lib/cpp/json
+	url = https://github.com/NeuroJSON/json.git
+[submodule "lib/python/pybj"]
 	path = lib/python/pybj
-	url = https://github.com/fangq/py-ubjson.git
+	url = https://github.com/NeuroJSON/pybj.git
 	branch = bjdata
 [submodule "lib/python/pyjdata"]
 	path = lib/python/pyjdata
-	url = https://github.com/fangq/pyjdata.git
+	url = https://github.com/NeuroJSON/pyjdata.git
+[submodule "lib/c/json"]
+	path = lib/c/json
+	url = https://github.com/NeuroJSON/json.git
