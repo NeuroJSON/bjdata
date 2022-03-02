@@ -40,13 +40,13 @@ draft of this file specification, including
     question, report a bug, provide a feature request, or simply propose
     general discussions. Please use URLs or keywords to link your discussion 
     to a specific line/section/topic in the document.
-- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/commit/3f12e5ddaf75863ed9a69714dbd00e1258660118)
+- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/commit/679e92e45aa3ceae9fb5bc74e469ca8cf504be41)
   - A milestone version of the specification will be associated with an
     RFC (Request for comments) commit (where the entire file is removed
     and re-added so that every line appears in such commit). One can
     write short comments as well as post replies on this RFC page. 
   - The latest stable release is **[Version 1 Draft 2](https://github.com/NeuroJSON/bjdata/tree/Draft_2)**. Please use
-    [this link](https://github.com/NeuroJSON/bjdata/commit/3f12e5ddaf75863ed9a69714dbd00e1258660118) to comment.
+    [this link](https://github.com/NeuroJSON/bjdata/commit/679e92e45aa3ceae9fb5bc74e469ca8cf504be41) to comment.
   - To add a comment, you need to first register a github account, and then 
     browse the above RFC page. When hovering your cursor over each line, a 
     "plus" icon is displayed, clicking it will allow one to comment on a 
