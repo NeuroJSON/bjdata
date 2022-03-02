@@ -455,14 +455,27 @@ array or object) are considered to be of that singular _type_ and, as a result,
 _type_ markers are omitted for each value within the container. This can be 
 thought of as providing the ability to create a strongly-typed container in BJData.
 
+A major different between BJData and UBJSON is that the _type_ in a BJData
+strongly-typed container is limited to **non-zero-fixed-length data types**, therefore,
+only integers (`i,U,I,u,l,m,L,M`), floating-point numbers (`h,d,D`) and char (`C`)
+are qualified. All zero-length types (`T,F,Z,N`), variable-length types(`S, H`)
+and container types (`[,{`) shall not be used in an optimized _type_ header.
+This restriction is set to reduce the security risks due to potentials of
+buffer-overflow attacks using [zero-length markers](https://github.com/nlohmann/json/issues/2793),
+hampered readability and dimished benefit using variable/container
+types in an optimized format.
+
+The requirements for _type_ are
+
+- If a _type_ is specified, it **must** be one of `i,U,I,u,l,m,L,M,h,d,D,C`.
 - If a _type_ is specified, it **must** be done so before a _count_.
 - If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise 
 it is impossible to tell when a container is ending, e.g. did you just parse 
 *]* or the `int8` value of 93?)
 
-#### Example (string type):
+#### Example (uint8 type):
 ```
-[$][S]
+[$][U]
 ```
 
 ---
@@ -577,25 +590,6 @@ Optimized with both _type_ and _count_
     [i][4][long][31.131]
     [i][3][alt][67.0]
 // No end marker since a count was specified.
-```
-
----
-### Special case: Marker-only types (`null`, `no-op` & Boolean)
-If using both _count_ and _type_ optimizations, the marker itself represents the 
-value, thus saving repetition (since these types do not have a payload). 
-Additional examples are:
-
-Strongly-typed array of type `true` (Boolean) and with a _count_ of 512:
-```
-[[][$][T][#][I][512]
-```
-
-Strongly-typed object of type `null` and with a _count_ of 3:
-```
-[{][$][Z][#][i][3]
-    [i][4][name] // name only, no value specified.
-    [i][8][password]
-    [i][5][email]
 ```
 
 Recommended File Specifiers
