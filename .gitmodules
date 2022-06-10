@@ -17,3 +17,6 @@
 [submodule "lib/python/pyjdata"]
 	path = lib/python/pyjdata
 	url = https://github.com/NeuroJSON/pyjdata.git
+[submodule "lib/javascript/js-bjdata"]
+	path = lib/javascript/js-bjdata
+	url = https://github.com/NeuroJSON/js-bjdata.git

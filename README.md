@@ -22,12 +22,31 @@ repository (Commit 5ce1fe7). **The BJData format is no longer backward compatibl
 Libraries that support this specification include
 - Python: **pybj** (PIP:  https://pypi.org/project/bjdata/, Github: https://github.com/NeuroJSON/pybj)
 - MATLAB/Octave: **JSONLab** (Debian/Ubuntu/Fedora: `sudo apt-get install octave-jsonlab`, Github: https://github.com/fangq/jsonlab)
-- C: **ubj** (Github: https://github.com/fangq/ubj)
-- C++: **JSON for Modern C++** (with this patch https://github.com/nlohmann/json/pull/3336)
+- C: **ubj** (Github: https://github.com/NeuroJSON/ubj)
+- C++: **JSON for Modern C++** (v3.11.0 or later) (https://github.com/nlohmann/json/)
+- JavaScript: **bjd** (npm: https://www.npmjs.com/package/bjd, Github: https://github.com/NeuroJSON/js-bjdata)
 
 **Acknowledgement**: This specification was developed as part of the NeuroJSON project
 (http://neurojson.org), with funding support from the US National Institute of Health (NIH) under
 grant [U24-NS124027](https://reporter.nih.gov/project-details/10308329) (PI: [Qianqian Fang](http://fanglab.org)).
+
+
+## What is BJData
+
+BJData is a binary JSON format. It is similar to JSON but allows to store strongly-typed binary data.
+The BJData format improves upon the widely supported UBJSON (https://ubjson.org) format by adding
+the below key features
+
+- added 4 new data types previously missing from UBJSON, including `[u] - uint16`, `[m] - uint32`, 
+  `[M] - uint64` and `[h] - half/float16`,
+- first among all binary JSON formats to support **packed N-dimensional arrays (ndarray)** - a data
+  type that is of great importance to the scientific community,
+- addopted **Little-Endian** as the default byte-order, as opposed to Big-Endian for UBJSON/MessagePack/CBOR,
+- only non-zero-fixed-length data types are allowed in optimized container types (`$`), which 
+  means `[{SHTFTN` can not follow `$`, but `UiuImLMLhdDC` are allowed
+
+![](./images/BJData_Diagram.png)
+
 
 ## How to participate
 
@@ -56,8 +75,8 @@ draft of this file specification, including
   - One can browse the commit history of the specification document. If
     anyone is interested in commenting on a particular updated, you can also
     comment on any of the commit page using the same method.
-- [Use the JData mailing list](https://groups.google.com/forum/#!forum/openjdata)
-  - You may send your comments to the jdata mailing list (openjdata at googlegroups.com). 
+- [Use NeuroJSON mailing list](https://groups.google.com/forum/#!forum/neurojson)
+  - You may send your comments to the neurojson mailing list (neurojson at googlegroups.com). 
     Subscribers will discuss by emails, and if a motion is reached, proposals
     will be resubmitted as an Issue, and changes to the specification will be
     associated with this issue page.
