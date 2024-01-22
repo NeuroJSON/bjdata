@@ -263,7 +263,7 @@ integers are written in Big-Endian order).
 
 #### Float
 All float types (`half`, `single`, `double` are written in **Little-Endian order** 
-(this is different from UBJSON which does not specify the endianness of floats).
+(this is different from UBJSON which does not specify the Endianness of floats).
 
 - `float16` or half-precision values are written in [IEEE 754 half precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-2008_revision), which has the following 
@@ -462,7 +462,7 @@ are qualified. All zero-length types (`T,F,Z,N`), variable-length types(`S, H`)
 and container types (`[,{`) shall not be used in an optimized _type_ header.
 This restriction is set to reduce the security risks due to potentials of
 buffer-overflow attacks using [zero-length markers](https://github.com/nlohmann/json/issues/2793),
-hampered readability and dimished benefit using variable/container
+hampered readability and diminished benefit using variable/container
 types in an optimized format.
 
 The requirements for _type_ are
