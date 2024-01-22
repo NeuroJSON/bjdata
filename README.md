@@ -41,7 +41,7 @@ the below key features
   `[M] - uint64` and `[h] - half/float16`,
 - first among all binary JSON formats to support **packed N-dimensional arrays (ndarray)** - a data
   type that is of great importance to the scientific community,
-- addopted **Little-Endian** as the default byte-order, as opposed to Big-Endian for UBJSON/MessagePack/CBOR,
+- adopted **Little-Endian** as the default byte-order, as opposed to Big-Endian for UBJSON/MessagePack/CBOR,
 - only non-zero-fixed-length data types are allowed in optimized container types (`$`), which 
   means `[{SHTFTN` can not follow `$`, but `UiuImLMLhdDC` are allowed
 
