@@ -4,7 +4,7 @@ Binary JData: A portable interchange format for complex binary data
 - **Status of this document**: Request for comments
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 1 (Draft 2)
+- **Version**: 1 (Draft 3.preview)
 - **Last Stable Release**: [Version 1 (Draft 2)](https://github.com/NeuroJSON/bjdata/blob/Draft_2/Binary_JData_Specification.md)
 - **Abstract**:
 
@@ -12,8 +12,8 @@ Binary JData: A portable interchange format for complex binary data
 protocol for unambiguously storing complex and strongly-typed binary data found 
 in diverse applications. The BJData specification is the binary counterpart
 to the JSON format, both of which are used to serialize complex data structures
-supported by the JData specification (http://openjdata.org). The BJData spec is 
-derived and extended from the Universal Binary JSON (UBJSON, http://ubjson.org) 
+supported by the JData specification (https://neurojson.org/jdata). The BJData spec is 
+derived and extended from the Universal Binary JSON (UBJSON, https://ubjson.org) 
 specification (Draft 12). It adds supports for N-dimensional packed arrays and 
 extended binary data types.
 
@@ -45,31 +45,32 @@ backends, medical imaging, and scientific data storage.
 The lack of support for strongly-typed and binary data has been one of the main 
 barriers towards widespread adoption of JSON in these domains. In recent years, 
 efforts to address these limitation have resulted in an array of versatile binary 
-JSON formats, such as BSON (Binary JSON, http://bson.org), UBJSON (Universal Binary 
-JSON, http://ubjson.org), MessagePack (https://msgpack.org), CBOR (Concise Binary 
+JSON formats, such as BSON (Binary JSON, https://bson.org), UBJSON (Universal Binary 
+JSON, https://ubjson.org), MessagePack (https://msgpack.org), CBOR (Concise Binary 
 Object Representation, [RFC 7049], https://cbor.io) etc. These binary JSON 
 counterparts are broadly used in speed-sensitive data processing applications and
 address various needs from a diverse range of applications.
  
 To better champion findable, accessible, interoperable, and reusable 
 ([FAIR principle](https://www.nature.com/articles/sdata201618)) data in 
-scientific data storage and management, we have created the **OpenJData Initiative**
-(http://openjdata.org) to develop a set of open-standards for portable, human-readable 
+scientific data storage and management, we have created the **NeuroJSON Project**
+(https://neurojson.org) to develop a set of open-standards for portable, human-readable 
 and high-performance data annotation and serialization aimed towards enabling
-scientific researchers, IT engineers, as well as general data users to efficiently 
-annotate and store complex data structures arising from diverse applications.
+neuroimaging researchers, scientific researchers, IT engineers, as well as general 
+data users to efficiently annotate and store complex data structures arising 
+from diverse applications.
  
-The OpenJData framework first converts complex data structures, such as N-D
+The NeuroJSON data sharing framework first converts complex data structures, such as N-D
 arrays, trees, tables and graphs, into easy-to-serialize, portable data annotations
 via the **JData Specification** (https://github.com/NeuroJSON/jdata) and then serializes 
 and stores the annotated JData constructs using widely-supported data formats. 
-To balance data portability, readability and efficiency, OpenJData defines a 
+To balance data portability, readability and efficiency, NeuroJSON defines a 
 **dual-interface**: a text-based format **syntactically compatible with JSON**,
 and a binary-JSON format to achieve significantly smaller file sizes and faster 
 encoding/decoding.
  
 The Binary JData (BJData) format is the **official binary interface** for the JData 
-specification. It is derived from the widely supported UBJSON Specification 
+Specification. It is derived from the widely supported UBJSON Specification 
 Draft 12 (https://github.com/ubjson/universal-binary-json), and adds native
 support for **N-dimensional packed arrays** - an essential data structure for
 scientific applications - as well as extended binary data types, including unsigned
@@ -95,7 +96,7 @@ License
 ------------------------------
 
 The Binary JData Specification is licensed under the
-[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
+[Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0.html).
 
 
 Format Specification
@@ -116,7 +117,7 @@ the data following it.
 `uint16`, `int16`, `uint32`, `int32`, `uint64` or `int64`) specifying the length 
 of the following data payload.
 
-- **data** (_optional_) - A contiguous byte-stream containing serialized binary  
+- **data** (_optional_) - A contiguous byte-stream containing serialized binary
 data representing the actual binary data for this type of value.
 
 ### Notes
@@ -246,8 +247,8 @@ uint32| Yes | 0 | 4,294,967,295
 int64 | No | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807
 uint64| Yes | 0 | 18,446,744,073,709,551,615
 float16/half | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-2008_revision) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-2008_revision)
-float32/single | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
-float64/double | Yes | See [IEEE 754 Spec](http://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
+float32/single | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
+float64/double | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
 high-precision number | Yes | Infinite | Infinite
 
 **Notes**:
@@ -273,14 +274,14 @@ structure:
   - Bit 9-0 (10 bits) - fraction (significant)
 
 - `float32` or single-precision values are written in [IEEE 754 single precision floating point 
-format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
+format](https://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 31 (1 bit) - sign
   - Bit 30-23 (8 bits) - exponent
   - Bit 22-0 (23 bits) - fraction (significant)
 
 - `float64` or double-precision values are written in [IEEE 754 double precision floating point 
-format](http://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
+format](https://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 63 (1 bit) - sign
   - Bit 62-52 (11 bits) - exponent
@@ -290,7 +291,7 @@ structure:
 #### High-Precision
 These are encoded as a string and thus are only limited by the maximum string 
 size. Values **must** be written out in accordance with the original [JSON 
-number type specification](http://json.org).
+number type specification](https://json.org).
 
 #### Examples
 Numeric values in JSON:
@@ -601,13 +602,13 @@ The MIME type for a Binary JData document is **`"application/jdata-binary"`**
 Acknowledgement
 ------------------------------
 
-The BJData spec is derived from the Universal Binary JSON (UBJSON, http://ubjson.org) 
+The BJData spec is derived from the Universal Binary JSON (UBJSON, https://ubjson.org) 
 specification (Draft 12) developed by Riyad Kalla and other UBJSON contributors.
 
 The initial version of this MarkDown-formatted specification was derived from the 
 documentation included in the [Py-UBJSON](https://github.com/Iotic-Labs/py-ubjson/blob/dev-contrib/UBJSON-Specification.md) 
 repository (Commit 5ce1fe7).
 
-This specification was developed as part of the NeuroJSON project (http://neurojson.org) 
+This specification was developed as part of the NeuroJSON project (https://neurojson.org) 
 with funding support from the US National Institute of Health (NIH) under
 grant [U24-NS124027](https://reporter.nih.gov/project-details/10308329).
