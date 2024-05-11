@@ -171,6 +171,7 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [float64/double](#value_numeric) | 9 bytes | *D* | No | Yes
 [high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
 [char](#value_char) | 2 bytes | *C* | No | Yes
+[byte](#value_byte) | 2 bytes | *B* | No | Yes
 [string](#value_string) | 1 byte + int num val + string byte len | *S* | Yes | Yes (if not empty)
 [array](#container_array) | 2+ bytes | *\[* and *\]* | Optional | Yes (if not empty)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
@@ -355,6 +356,33 @@ BJData (using block-notation):
 ```
 
 ---
+### <a name="value_byte"/>Byte
+The `byte` type in BJData is functionally identical to the `uint8` type, 
+but semantically is meant to represent a byte and not a numeric value. In
+particular, when used as the strong type of an array container it provides
+a hint to the parser that an optimized data storage format may be used as
+opposed to a generic array of integers.
+
+See also [optimized format](#container_optimized) below.
+
+#### Example
+Byte values in JSON:
+```json
+{
+    "binary": [222, 173, 190, 239]
+    "val": [123],
+}
+```
+
+BJData (using block-notation):
+```
+[{]
+    [i][6][binary] [[] [$][B] [#][i][4] [222][173][190][239]
+    [i][3][val][B][123]
+[}]
+```
+
+---
 ### <a name="value_string"/>String
 The `string` type in BJData is equivalent to the `string` type from the JSON 
 specification apart from the fact that BJData string value **requires** UTF-8 
@@ -458,7 +486,7 @@ thought of as providing the ability to create a strongly-typed container in BJDa
 
 A major different between BJData and UBJSON is that the _type_ in a BJData
 strongly-typed container is limited to **non-zero-fixed-length data types**, therefore,
-only integers (`i,U,I,u,l,m,L,M`), floating-point numbers (`h,d,D`) and char (`C`)
+only integers (`i,U,I,u,l,m,L,M`), floating-point numbers (`h,d,D`), char (`C`) and byte (`B`)
 are qualified. All zero-length types (`T,F,Z,N`), variable-length types(`S, H`)
 and container types (`[,{`) shall not be used in an optimized _type_ header.
 This restriction is set to reduce the security risks due to potentials of
@@ -468,7 +496,7 @@ types in an optimized format.
 
 The requirements for _type_ are
 
-- If a _type_ is specified, it **must** be one of `i,U,I,u,l,m,L,M,h,d,D,C`.
+- If a _type_ is specified, it **must** be one of `i,U,I,u,l,m,L,M,h,d,D,C,B`.
 - If a _type_ is specified, it **must** be done so before a _count_.
 - If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise 
 it is impossible to tell when a container is ending, e.g. did you just parse 
@@ -493,6 +521,11 @@ bytes while parsing.
 ```
 [#][i][64]
 ```
+
+### Optimized binary array
+When an array of _type_ `B` is specified the parser shall use an optimized data storage format to represent binary data where applicable, as opposed to a generic array of integers. Similarly, explicit binary data should be serialized as such to allow for parsers to make use of the optimization.
+
+If such a data storage format is not available, an array of integers shall be used.
 
 ### Optimized N-dimensional array of uniform type
 When both _type_ and _count_ are specified and the _count_ marker `#` is followed 
