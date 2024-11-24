@@ -370,7 +370,7 @@ Byte values in JSON:
 ```json
 {
     "binary": [222, 173, 190, 239]
-    "val": [123],
+    "val": 123,
 }
 ```
 
