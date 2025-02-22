@@ -554,7 +554,8 @@ in the **row-major** element order (similar to C, C++, Javascript or Python) .
 To store an N-dimensional array that is serialized using the **column-major** element
 order (as used in MATLAB and FORTRAN), the _count_ marker `#` should be followed by
 an array of a single element, which must be a 1-D array of integer type as the
-dimensional vector above. For example, either of the following 
+dimensional vector above. Either of the arrays can be in optimized or non-optimized
+form. For example, either of the following 
 
 ```
 [[] [$] [type] [#] [[] [[] [$] [Nx type] [#] [Ndim type] [Ndim] [Nx Ny Nz ...] []]  [a11 a21 a31 ... a21 a22 ...]
@@ -580,22 +581,26 @@ The following 2x3x4 3-D `uint8` array
       ]
 ]
 ```
-shall be stored as
+shall be stored using **row-major** serialized form as
 ```
  [[] [$][U] [#][[] [$][U][#][3] [2][3][4]
     [1][9][6][0] [2][9][3][1] [8][0][9][6] [6][4][2][7] [8][5][1][2] [3][3][2][6]
 ```
-
+or **column-major** serialized form as
+```
+ [[] [$][U] [#][[] [[] [$][U][#][3] [2][3][4] []]
+    [1][6][2][8] [8][3][9][4] [9][5][0][3] [6][2][3][1] [9][2][0][7] [1][2][6][6]
+```
 
 ### Additional rules
 - A _count_ **must** be >= 0.
-- A _count_ can be specified by itself.
+- A _count_ can be specified alone.
 - If a _count_ is specified, the container **must not** specify an end-marker.
 - A container that specifies a _count_ **must** contain the specified number of 
 child elements.
 - If a _type_ is specified, it **must** be done so before _count_.
 - If a _type_ is specified, a _count_ **must** also be specified. A _type_ 
-cannot be specified by itself.
+cannot be specified alone.
 - A container that specifies a _type_ **must not** contain any additional 
 _type_ markers for any contained value.
 
