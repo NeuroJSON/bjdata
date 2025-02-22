@@ -43,7 +43,7 @@ the below key features
   type that is of great importance to the scientific community,
 - adopted **Little-Endian** as the default byte-order, as opposed to Big-Endian for UBJSON/MessagePack/CBOR,
 - only non-zero-fixed-length data types are allowed in optimized container types (`$`), which 
-  means `[{SHTFTN` can not follow `$`, but `UiuImLMLhdDC` are allowed
+  means `[{SHTFTN` can not follow `$`, but `UiuImLMLhdDCB` are allowed
 
 ![](./images/BJData_Diagram.png)
 
