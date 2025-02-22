@@ -551,6 +551,18 @@ all non-negative numbers specifying the dimensions of the N-dimensional array.
 The binary data of the N-dimensional array is then serialized into a 1-D vector
 in the **row-major** element order (similar to C, C++, Javascript or Python) .
 
+To store an N-dimensional array that is serialized using the **column-major** element
+order (as used in MATLAB and FORTRAN), the _count_ marker `#` should be followed by
+an array of a single element, which must be a 1-D array of integer type as the
+dimensional vector above. For example, either of the following 
+
+```
+[[] [$] [type] [#] [[] [[] [$] [Nx type] [#] [Ndim type] [Ndim] [Nx Ny Nz ...] []]  [a11 a21 a31 ... a21 a22 ...]
+  or
+[[] [$] [type] [#] [[] [[] [Nx type] [nx] [Ny type] [Ny] [Nz type] [Nz] ... []] []] [a11 a21 a31 ... a21 a22 ...]
+```
+represents the same column-major N-dimensional array of `type` and size `[Nx, Ny, Nz, ...]`.
+
 
 #### Example (a 2x3x4 `uint8` array):
 The following 2x3x4 3-D `uint8` array 
