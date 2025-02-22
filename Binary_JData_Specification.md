@@ -523,7 +523,10 @@ bytes while parsing.
 ```
 
 ### Optimized binary array
-When an array of _type_ `B` is specified the parser shall use an optimized data storage format to represent binary data where applicable, as opposed to a generic array of integers. Similarly, explicit binary data should be serialized as such to allow for parsers to make use of the optimization.
+When an array of _type_ `B` is specified the parser shall use an optimized data storage
+format to represent binary data where applicable, as opposed to a generic array of integers.
+Similarly, explicit binary data should be serialized as such to allow for parsers to
+make use of the optimization.
 
 If such a data storage format is not available, an array of integers shall be used.
 
