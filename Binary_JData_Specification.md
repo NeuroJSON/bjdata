@@ -1,11 +1,14 @@
 Binary JData: A portable interchange format for complex binary data
 ============================================================
 
-- **Status of this document**: Request for comments
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 1 (Draft 3.preview)
-- **Last Stable Release**: [Version 1 (Draft 2)](https://github.com/NeuroJSON/bjdata/blob/Draft_2/Binary_JData_Specification.md)
+- **Version**: 1 (Draft 3)
+- **URL**: https://neurojson.org/bjdata/draft3
+- **Status**: Frozen on March 23, 2025. For future updates, please see the Development URL below
+- **Development**: https://github.com/NeuroJSON/bjdata
+- **Acknowledgement**: This project is supported by US National Institute of Health (NIH)
+  grant [U24-NS124027 (NeuroJSON)](https://neurojson.org)
 - **Abstract**:
 
 > The Binary JData (BJData) Specification defines an efficient serialization 

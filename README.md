@@ -21,7 +21,7 @@ repository (Commit 5ce1fe7). **The BJData format is no longer backward compatibl
 
 Libraries that support this specification include
 - Python: **pybj** (PIP:  https://pypi.org/project/bjdata/, Github: https://github.com/NeuroJSON/pybj)
-- MATLAB/Octave: **JSONLab** (Debian/Ubuntu/Fedora: `sudo apt-get install octave-jsonlab`, Github: https://github.com/fangq/jsonlab)
+- MATLAB/Octave: **JSONLab** (Debian/Ubuntu/Fedora: `sudo apt-get install octave-jsonlab`, Github: https://github.com/NeuroJSON/jsonlab)
 - C: **ubj** (Github: https://github.com/NeuroJSON/ubj)
 - C++: **JSON for Modern C++** (v3.11.0 or later) (https://github.com/nlohmann/json/)
 - JavaScript: **bjd** (npm: https://www.npmjs.com/package/bjd, Github: https://github.com/NeuroJSON/js-bjdata)
@@ -59,27 +59,16 @@ draft of this file specification, including
     question, report a bug, provide a feature request, or simply propose
     general discussions. Please use URLs or keywords to link your discussion 
     to a specific line/section/topic in the document.
-- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/commit/679e92e45aa3ceae9fb5bc74e469ca8cf504be41)
-  - A milestone version of the specification will be associated with an
-    RFC (Request for comments) commit (where the entire file is removed
-    and re-added so that every line appears in such commit). One can
-    write short comments as well as post replies on this RFC page. 
-  - The latest stable release is **[Version 1 Draft 2](https://github.com/NeuroJSON/bjdata/tree/Draft_2)**. Please use
-    [this link](https://github.com/NeuroJSON/bjdata/commit/679e92e45aa3ceae9fb5bc74e469ca8cf504be41) to comment.
-  - To add a comment, you need to first register a github account, and then 
-    browse the above RFC page. When hovering your cursor over each line, a 
-    "plus" icon is displayed, clicking it will allow one to comment on a 
-    specific line (or reply to other's comments).
-  - The RFC page can get busy if too many comments appear. Please consider 
-    using the [Issues section](https://github.com/NeuroJSON/bjdata/issues) if this happens.
+- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-2)
+  - The latest stable release is **[Version 1 Draft 3](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-2)**
+  - To add a comment, Please consider using the
+    [Issues section](https://github.com/NeuroJSON/bjdata/issues)
   - One can browse the commit history of the specification document. If
     anyone is interested in commenting on a particular updated, you can also
     comment on any of the commit page using the same method.
-- [Use NeuroJSON mailing list](https://groups.google.com/forum/#!forum/neurojson)
-  - You may send your comments to the neurojson mailing list (neurojson at googlegroups.com). 
-    Subscribers will discuss by emails, and if a motion is reached, proposals
-    will be resubmitted as an Issue, and changes to the specification will be
-    associated with this issue page.
+- [Use NeuroJSON Forum](https://github.com/orgs/NeuroJSON/discussions)
+  - You may send your comments to the neurojson Github forum. You may report
+    bugs, new features, or submit new datasets.
 
 For anyone who wants to contribute to the writing or revision of this document,
 please follow the below steps

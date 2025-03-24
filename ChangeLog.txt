@@ -1,0 +1,72 @@
+= Change Log =
+
+Major updates are marked with a "*"
+
+== BJData Spec Draft-3, FangQ <q.fang (a) neu.edu> ==
+
+ 2025-02-22 [14b23ac] Update README.md
+ 2025-02-22 [1b718a7] Set h background to match float type
+ 2025-02-22 [1c7f954] Update BJData synopsis
+ 2025-02-22 [51830fd] Provide column-major optimized ND array example
+ 2025-02-22 [085d0a4] Update .wordlist.txt
+ 2025-02-22*[a9683d9] Optimized array supports column-major storage
+ 2025-02-22 [7adc621] Update Binary_JData_Specification.md
+ 2024-11-24 [0844096] fix: Byte value example
+ 2024-11-24 [94c5ac7] add "parsers" to wordlist
+ 2024-10-25 [548cc29] Added basic Dependabot configuration
+ 2024-05-10*[f9cd4e3] feat: Binary value type
+ 2024-01-22 [883d1d6] add new word to wordlist
+ 2024-01-22 [e3b9e7b] change urls to https
+ 2024-01-22 [1f4f7fd] add missing config file
+ 2024-01-22 [244422a] add missing config file
+ 2024-01-22 [a8f45ba] add spell checking action
+ 2022-06-09 [d791c73] add 1-page synosis, update all parsers to the latest git versions
+
+== BJData Spec Draft-2, FangQ <q.fang (a) neu.edu> ==
+
+ 2022-03-02 [98e0b52] update RFC links in README for Draft 2
+ 2022-03-02*[90150eb] Disable `[{SHTFNZ` as optimized type marker due to security risks and diminished benefit
+ 2022-02-22 [996ecb8] Update README.md
+ 2022-02-21 [fc51791] Update Binary_JData_Specification.md
+ 2022-02-21 [ecaf84c] update stable release link to Draft 2
+ 2022-02-21 [83bc0a3] remote outdated module path
+ 2022-02-21 [9231620] add c++ library
+ 2022-02-21 [2429e30] update draft-2 compatible libraries
+ 2022-02-21 [20390d1] Update README.md
+ 2022-02-21 [fb7f438] Polish specification for Draft 2 freeze
+ 2022-02-21 [c78697d] Update README.md
+ 2022-02-21 [f9f872b] Update README.md
+ 2022-02-19 [9edaa9f] fix typo
+ 2022-01-30*[19f4b5c] Breaking: BJData Draft-2 now uses Little-Endian as default int/float byte order
+ 2020-08-10 [d322683] update python modules
+ 2020-07-13 [cb3c5ff] update fully functional python and matlab modules
+ 2020-06-07 [43cb6ea] Update version number
+ 2020-05-16 [8352986] update jsonlab and zmat to the latest
+
+== BJData Spec Draft-1, FangQ <q.fang (a) neu.edu> ==
+
+ 2020-05-12 [2da127d] update RFC commit link for Draft 1 in README
+ 2020-05-12 [8a6b1a0] update RFC commit link for Draft 1 in README
+ 2020-05-12 [8710a15] change document status to request for comments
+ 2020-05-12 [5d3d88f] Minor language updates
+ 2020-05-12 [8722606] Language proofreading, thanks to Edward Xu (@edwardx324)
+ 2020-05-11 [99fbdb9] Minor language polishing
+ 2020-05-11 [a067ed3] Add introduction
+ 2020-05-08 [a418aaf] add Py-JData module
+ 2020-05-08 [ec2fcf7] add initial python support to BJData draft 1
+ 2020-05-08 [3ae7a1f] sync jsonlab to the latest version
+ 2020-05-06 [a73d201] sync with jsonlab fix
+ 2020-05-06 [214a590] update to the latest jsonlab which supports bjd draft 1
+ 2020-05-04 [ba2726b] Add project logo in README
+ 2020-05-04 [4e25de0] Minor formatting update
+ 2020-05-04 [0cac4cb] Polishing format and language for clarity
+ 2020-05-04 [9f592e8] add BJData compliant parsers
+ 2020-05-04 [92de0c9] H marker should be signed
+ 2020-05-04 [f3d338f] Use IEEE 754 NaN and Infinity binary forms instead of converting to null
+ 2020-05-04 [e98f607] fix formatting of 3D array example
+ 2020-05-04 [95544dc] Add uint16 (u), uint32 (m), uint64 (M), half (h) markers and ND array optimized syntax
+ 2020-05-04 [16c00e2] Update TOC links
+ 2020-05-04 [fdf43b1] Add title, abstract, and acknowledgement
+ 2020-05-03 [7b559a5] renaming document to binary jdata spec
+ 2020-05-03 [582e078] Add README for initial import
+ 2020-05-03 [119d0bd] Initial import of Markup version of UBJSON Spec from https://github.com/Iotic-Labs/py-ubjson
