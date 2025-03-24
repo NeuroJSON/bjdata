@@ -3,10 +3,10 @@
 	url = https://github.com/NeuroJSON/jsonlab.git
 [submodule "lib/matlab/zmat"]
 	path = lib/matlab/zmat
-	url = https://github.com/fangq/zmat.git
+	url = https://github.com/NeuroJSON/zmat.git
 [submodule "lib/c/ubj"]
 	path = lib/c/ubj
-	url = https://github.com/fangq/ubj.git
+	url = https://github.com/NeuroJSON/ubj.git
 [submodule "lib/cpp/json"]
 	path = lib/cpp/json
 	url = https://github.com/NeuroJSON/json
