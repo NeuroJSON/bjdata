@@ -59,8 +59,8 @@ draft of this file specification, including
     question, report a bug, provide a feature request, or simply propose
     general discussions. Please use URLs or keywords to link your discussion 
     to a specific line/section/topic in the document.
-- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-2)
-  - The latest stable release is **[Version 1 Draft 3](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-2)**
+- [Write short comments on Request for Comments (RFC) commits](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-3)
+  - The latest stable release is **[Version 1 Draft 3](https://github.com/NeuroJSON/bjdata/releases/tag/Draft-3)**
   - To add a comment, Please consider using the
     [Issues section](https://github.com/NeuroJSON/bjdata/issues)
   - One can browse the commit history of the specification document. If
