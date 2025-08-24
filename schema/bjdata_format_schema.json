@@ -1,0 +1,487 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BJData Logical Structure Schema",
+  "description": "JSON schema describing the logical data structure that can be represented in BJData format. Note: BJData is a binary format - this schema describes the equivalent JSON representation.",
+  "$ref": "#/definitions/BJDataDocument",
+  "definitions": {
+    "BJDataDocument": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/BJDataValue"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BJDataValue"
+          },
+          "description": "Concatenated JSON objects (CJSON format)"
+        }
+      ]
+    },
+    "BJDataValue": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/BJDataNull"
+        },
+        {
+          "$ref": "#/definitions/BJDataNoOp"
+        },
+        {
+          "$ref": "#/definitions/BJDataBoolean"
+        },
+        {
+          "$ref": "#/definitions/BJDataNumeric"
+        },
+        {
+          "$ref": "#/definitions/BJDataChar"
+        },
+        {
+          "$ref": "#/definitions/BJDataByte"
+        },
+        {
+          "$ref": "#/definitions/BJDataString"
+        },
+        {
+          "$ref": "#/definitions/BJDataArray"
+        },
+        {
+          "$ref": "#/definitions/BJDataObject"
+        }
+      ]
+    },
+    "BJDataNull": {
+      "type": "string",
+      "enum": ["Z"],
+      "description": "BJData null marker [Z] - not the same as JSON null"
+    },
+    "BJDataNoOp": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["N"]
+        }
+      ],
+      "minItems": 1,
+      "maxItems": 1,
+      "description": "BJData no-op marker [N] - should be skipped during parsing"
+    },
+    "BJDataBoolean": {
+      "type": "string",
+      "enum": ["T", "F"],
+      "description": "BJData boolean markers [T] or [F]"
+    },
+    "BJDataNumeric": {
+      "type": "array",
+      "oneOf": [
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["i"]
+            },
+            {
+              "type": "integer",
+              "minimum": -128,
+              "maximum": 127
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "int8 [i][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["U"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "uint8 [U][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["I"]
+            },
+            {
+              "type": "integer",
+              "minimum": -32768,
+              "maximum": 32767
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "int16 [I][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["u"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "uint16 [u][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["l"]
+            },
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "int32 [l][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["m"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "uint32 [m][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["L"]
+            },
+            {
+              "type": "integer",
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "int64 [L][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "uint64 [M][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["h"]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "float16/half [h][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["d"]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "float32/single [d][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["D"]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "float64/double [D][value]"
+        },
+        {
+          "items": [
+            {
+              "type": "string",
+              "enum": ["H"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "pattern": "^[+-]?([0-9]*[.])?[0-9]+([eE][+-]?[0-9]+)?$"
+            }
+          ],
+          "minItems": 4,
+          "maxItems": 4,
+          "description": "high-precision number [H][length_type][length][string_value]"
+        }
+      ]
+    },
+    "BJDataChar": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["C"]
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "pattern": "^[\x00-\x7F]$"
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "BJData char [C][character] - single printable ASCII character (0-127)"
+    },
+    "BJDataByte": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["B"]
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "BJData byte [B][value] - unsigned byte"
+    },
+    "BJDataString": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["S"]
+        },
+        {
+          "type": "string",
+          "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "BJData string [S][length_type][length][utf8_string]"
+    },
+    "BJDataArray": {
+      "type": "array",
+      "oneOf": [
+        {
+          "description": "Non-optimized array: [elements...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            }
+          ],
+          "additionalItems": {
+            "$ref": "#/definitions/BJDataValue"
+          },
+          "minItems": 1
+        },
+        {
+          "description": "Array with count: [#][count_type][count_value][elements...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "additionalItems": {
+            "$ref": "#/definitions/BJDataValue"
+          },
+          "minItems": 4
+        },
+        {
+          "description": "Optimized array: [$][type][#][count_type][count_value][data...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M", "h", "d", "D", "C", "B"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "description": "Array data with uniform type (type markers omitted)"
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        }
+      ]
+    },
+    "BJDataObject": {
+      "type": "array",
+      "oneOf": [
+        {
+          "description": "Non-optimized object: {name-value pairs...}",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["{"]
+            }
+          ],
+          "additionalItems": {
+            "$ref": "#/definitions/BJDataValue"
+          },
+          "minItems": 1
+        },
+        {
+          "description": "Object with count: {#][count_type][count_value][name-value pairs...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["{"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "additionalItems": {
+            "$ref": "#/definitions/BJDataValue"
+          },
+          "minItems": 4
+        },
+        {
+          "description": "Optimized object: {[$][type][#][count_type][count_value][name-value pairs...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["{"]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M", "h", "d", "D", "C", "B"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "description": "Alternating name-value pairs with uniform value type"
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        }
+      ]
+    }
+  }
+}
