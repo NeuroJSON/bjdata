@@ -20,3 +20,6 @@
 [submodule "lib/javascript/js-bjdata"]
 	path = lib/javascript/js-bjdata
 	url = https://github.com/NeuroJSON/js-bjdata.git
+[submodule "lib/dart/dart-bjdata"]
+	path = lib/dart/dart-bjdata
+	url = https://github.com/nebkat/dart-bjdata.git
