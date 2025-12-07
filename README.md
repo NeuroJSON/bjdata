@@ -37,13 +37,14 @@ BJData is a binary JSON format. It is similar to JSON but allows to store strong
 The BJData format improves upon the widely supported UBJSON (https://ubjson.org) format by adding
 the below key features
 
-- added 4 new data types previously missing from UBJSON, including `[u] - uint16`, `[m] - uint32`, 
-  `[M] - uint64` and `[h] - half/float16`,
+- added 5 new data types previously missing from UBJSON, including `[u] - uint16`, `[m] - uint32`,
+  `[M] - uint64`, `[h] - half/float16` and `[B] - byte`,
 - first among all binary JSON formats to support **packed N-dimensional arrays (ndarray)** - a data
   type that is of great importance to the scientific community,
 - adopted **Little-Endian** as the default byte-order, as opposed to Big-Endian for UBJSON/MessagePack/CBOR,
 - only non-zero-fixed-length data types are allowed in optimized container types (`$`), which 
   means `[{SHTFTN` can not follow `$`, but `UiuImLMLhdDCB` are allowed
+- restricted usage of `[N] - no-op` to within containers and "streams"
 
 ![](./images/BJData_Diagram.png)
 

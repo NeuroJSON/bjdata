@@ -158,7 +158,6 @@ data elements, if present, shall be ignored when performing the actual data stor
 Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 ---|---|---|---|---
 [null](#value_null) | 1 byte | *Z* | No | No
-[no-op](#value_noop) | 1 byte | *N* | No | No
 [true](#value_bool) | 1 byte | *T* | No | No
 [false](#value_bool) | 1 byte | *F* | No | No
 [int8](#value_numeric) | 2 bytes | *i* | No | Yes
@@ -201,16 +200,6 @@ In BJData (using block-notation):
     [i][8][passcode][Z]
 [}]
 ```
-
----
-### <a name="value_noop"/>No-Op
-There is no equivalent to the `no-op` value in the original JSON specification. When 
-decoding, No-Op values should be skipped.
-
-The intended usage of the `no-op` value is as a valueless signal between a 
-producer (most likely a server) and a consumer (most likely a client) to indicate 
-activity, for example, as a keep-alive signal so that a client knows a server is 
-still working and hasn't hung or timed out.
 
 ---
 ### <a name="value_bool"/>Boolean
@@ -648,6 +637,76 @@ Optimized with both _type_ and _count_
     [i][3][alt][67.0]
 // No end marker since a count was specified.
 ```
+
+---
+### No-Op - *N*
+A `no-op` marker `N` may appear as an element of a container (or an entry in a "stream"
+of values, which is itself implicitly an unbounded container). If a parser encounters a
+`no-op` when expecting a new element it shall ignore/skip it and continue parsing.
+
+For example, the following two arrays are considered equal:
+
+```
+[[]
+    [S][i][3][foo]
+    [S][i][3][bar]
+    [S][i][3][baz]
+[]]
+```
+and
+```
+[[]
+    [S][i][3][foo]
+    [N]
+    [S][i][3][bar]
+    [N]
+    [N]
+    [N]
+    [S][i][3][baz]
+    [N]
+    [N]
+[]]
+```
+
+The following two objects are also considered equal (note `N` must be in place of key
+length marker, not after a key where a value is expected):
+
+```
+[{][#][i][2]
+    [i][3][foo][i][1]
+    [i][3][bar][i][1]
+[}]
+```
+```
+[{][#][i][2]
+    [N]
+    [i][3][foo][i][1]
+    [N]
+    [i][3][bar][i][1]
+    [N]
+[}]
+```
+
+A `no-op` is a _signal_ rather than a value, therefore:
+- It may only appear inside a `array`, `object` or "stream"
+- It does not contribute towards container counts
+- It has no type and should never be decoded to a value (`null` or otherwise)
+
+This is different from UBJSON which describes it as a "valueless" value, and does not
+explicitly prohibit it from appearing outside of containers. This has been changed to
+avoid any ambiguity, as some UBJSON parsers treat it as a generic protocol level skip
+that can appear anywhere while others place similar restrictions to the above.
+
+This functionality has two primary purposes:
+
+Firstly, between a producer (most likely a server) and a consumer (most likely a client) it
+may be used as a keep-alive signal to indicate activity and prevent a time out.
+
+Secondly, this allows the `no-op` to act as an efficient **delete** operation for on-disk
+BJData when elements of a container are removed. Instead of reading the entire container,
+removing the elements and writing the whole thing out again, no-op bytes can simply be
+written over the records that were removed from the containers. When the record is parsed,
+it is semantically identical to a container without the values.
 
 Recommended File Specifiers
 ------------------------------
