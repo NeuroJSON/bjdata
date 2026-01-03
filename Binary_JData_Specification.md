@@ -3,9 +3,9 @@ Binary JData: A portable interchange format for complex binary data
 
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 1 (Draft 3)
-- **URL**: https://neurojson.org/bjdata/draft3
-- **Status**: Frozen on March 23, 2025. For future updates, please see the Development URL below
+- **Version**: 1 (Draft 4-preview)
+- **URL**: https://neurojson.org/bjdata/
+- **Status**: Under development
 - **Development**: https://github.com/NeuroJSON/bjdata
 - **Acknowledgement**: This project is supported by US National Institute of Health (NIH)
   grant [U24-NS124027 (NeuroJSON)](https://neurojson.org)
@@ -30,6 +30,13 @@ extended binary data types.
   - [Value types](#value_types)
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
+  - [Structrure-of-arrays (SOA)](#strucutre-of-arrays)
+    - [Row-major SOA](#row-major-soa)
+    - [Column-major SOA](#row-major_column-major)
+    - [Nested Containers in Schema](#nested_container_in_schema)
+    - [N-Dmensional SoA](#nd_soa)
+    - [SoA Example](#nd_soa)
+    - [Permitted type markers in SOA schema](#schema_marker_table)
 - [Recommended File Specifiers](#recommended-file-specifiers)
 - [Acknowledgement](#acknowledgement)
 
@@ -648,6 +655,351 @@ Optimized with both _type_ and _count_
     [i][3][alt][67.0]
 // No end marker since a count was specified.
 ```
+
+
+## <a name="structure-of-arrays"/>Structure-of-Arrays (SoA)
+
+BJData supports **Structure-of-Arrays (SoA)** to store packed object data in either row-major or column-major orders.
+
+### SoA Container Syntax
+
+#### Core Syntax
+
+```
+[[][$]  [{]<schema>[}]  [#]<count>  <payload>    // row-major (interleaved)
+[{][$]  [{]<schema>[}]  [#]<count>  <payload>    // column-major (columnar)
+```
+
+where:
+- `[` or `{` - container type (determines memory layout)
+- `$` - optimized type marker  
+- `{<schema>}` - payload-less object defining the record structure
+- `#` - count marker
+- `<count>` - 1D integer OR ND dimension array
+- `<payload>` - tightly packed data
+
+#### Schema Definition
+
+The schema is a **payload-less object**: keys followed by type markers only, no values.
+
+```
+schema        = '{' 1*(field-def) '}'
+field-def     = name type-spec
+name          = int-type length string-bytes
+type-spec     = fixed-type | bool-type | null-type | fixed-string | fixed-highprec 
+              | nested-schema | fixed-array
+fixed-type    = 'U' | 'i' | 'u' | 'I' | 'l' | 'm' | 'L' | 'M' | 'h' | 'd' | 'D' | 'C' | 'B'
+bool-type     = 'T'                        ; boolean (1 byte: T or F in payload)
+null-type     = 'Z'                        ; null (0 bytes in payload)
+fixed-string  = 'S' int-type length        ; fixed-size string
+fixed-highprec= 'H' int-type length        ; fixed-size high-precision number
+nested-schema = '{' 1*(field-def) '}'
+fixed-array   = '[' 1*(type-spec) ']'      ; regular array with explicit types
+```
+
+**Key rules:**
+1. Fixed-length numeric types: `U i u I l m L M h d D C B`
+2. `T` in schema means "boolean type" - each value is 1 byte (`T` or `F` marker) in payload
+3. `Z` in schema means "null field" - no bytes in payload (placeholder/reserved field)
+4. `S` and `H` require a length specifier, making them fixed-length
+5. Nested objects `{...}` are allowed if all fields are fixed-length
+6. Fixed arrays use regular syntax `[type type ...]` - no optimized containers inside schema
+7. **No `$` or `#` markers allowed anywhere inside the schema**
+8. `F` and `N` are not used in schema (use `T` for boolean, `Z` for null)
+
+#### Fixed-Length Strings (`S`) and High-Precision Numbers (`H`)
+
+In normal BJData, `S` and `H` are variable-length:
+```
+S i 5 h e l l o          ; string value, length 5
+H i 3 1 2 3              ; high-precision value "123"
+```
+
+In a **schema context**, they define fixed-length types:
+```
+{ i4 name S i 16 }       ; "name" is a 16-byte fixed string
+{ i5 value H i 32 }      ; "value" is a 32-byte fixed high-precision number
+```
+
+In the payload, each record contributes exactly the specified bytes - no length prefix. Strings shorter than the length are right-padded with null bytes (0x00).
+
+#### Boolean Type (`T`)
+
+In normal BJData, `T` and `F` are zero-length value markers:
+```
+T                        ; true (no payload)
+F                        ; false (no payload)
+```
+
+In a **schema context**, `T` means "boolean type" - a 1-byte field:
+```
+{ i6 active T }          ; "active" is a boolean field
+```
+
+In the payload, each boolean value is stored as a single byte: `T` (0x54) for true, `F` (0x46) for false.
+
+#### Null Type (`Z`)
+
+In a **schema context**, `Z` means "null/placeholder field" with **zero bytes** in payload:
+```
+{ 
+  i2 id m                ; uint32 (4 bytes)
+  i8 reserved Z          ; placeholder (0 bytes)
+  i4 data d              ; float64 (8 bytes)
+}
+```
+
+This is useful for:
+- Reserved fields for future expansion
+- Marking fields that exist in the schema but carry no data
+- Sparse structures where some fields are always null
+
+---
+
+### <a name="row-major_column-major"/>Row-Major vs Column-Major Layout
+
+Using existing container markers (no new markers needed):
+
+| Syntax | Layout | Description |
+|--------|--------|-------------|
+| `[$` | **Row-major (Interleaved)** | Array of records - each complete record stored sequentially |
+| `{$` | **Column-major (Columnar)** | Object of arrays - all values of each field stored together |
+
+#### Row-Major: `[$`
+
+```
+[$  {<schema>}  #<count>  <interleaved-payload>
+```
+
+Payload order: `<record1><record2><record3>...`
+
+**Example:** 3 particles with `{x:float64, y:float64, id:uint32, active:bool}`
+```
+[ $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
+  <x1:8><y1:8><id1:4><active1:1>  <x2:8><y2:8><id2:4><active2:1>  ...
+```
+Payload: 3 × 21 bytes = 63 bytes, interleaved
+
+#### Column-Major: `{$`
+
+```
+{$  {<schema>}  #<count>  <columnar-payload>
+```
+
+Payload order: `<all field1 values><all field2 values>...`
+
+**Example:** Same 3 particles
+```
+{ $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
+  <x1:8><x2:8><x3:8>  <y1:8><y2:8><y3:8>  <id1:4><id2:4><id3:4>  <T><F><T>
+```
+Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
+
+**Why this design:**
+- `[` = "ordered sequence" → sequence of records (row-major)
+- `{` = "named fields" → fields as separate arrays (column-major)
+- No new markers needed
+
+---
+
+### <a name="nested_container_in_schema"/>Nested Containers in Schema
+
+#### Nested Objects
+
+```
+{
+  i4 name S i 32           ; 32-byte fixed string
+  i8 position {            ; nested object (24 bytes total)
+    i1 x d
+    i1 y d  
+    i1 z d
+  }
+  i6 active T              ; boolean (1 byte)
+  i5 flags U               ; uint8 (1 byte)
+}
+```
+
+Record size: 32 + 24 + 1 + 1 = 58 bytes
+
+#### Fixed-Length Arrays in Schema
+
+Use regular array syntax with repeated type markers:
+
+```
+{
+  i2 id m                  ; uint32 (4 bytes)
+  i3 pos [d d d]           ; array of 3 float64 (24 bytes)
+  i5 color [U U U U]       ; array of 4 uint8 (4 bytes)
+  i5 flags [T T T T]       ; array of 4 booleans (4 bytes)
+}
+```
+
+Record size: 4 + 24 + 4 + 4 = 36 bytes
+
+For longer arrays, repeat the type marker:
+```
+{
+  i4 data [d d d d d d d d d d]   ; array of 10 float64 (80 bytes)
+}
+```
+
+#### Nested Arrays with Mixed Types
+
+```
+{
+  i6 vertex [d d d]        ; position: 3 float64 (24 bytes)
+  i6 normal [h h h]        ; normal: 3 float16 (6 bytes)
+  i5 color [U U U U]       ; RGBA: 4 uint8 (4 bytes)
+  i7 visible T             ; visibility: boolean (1 byte)
+}
+```
+
+Record size: 24 + 6 + 4 + 1 = 35 bytes
+
+#### Combined Example
+
+```json
+{
+  "id": 12345,
+  "name": "sensor_01",
+  "position": {"x": 1.0, "y": 2.0, "z": 3.0},
+  "readings": [0.1, 0.2, 0.3, 0.4, 0.5],
+  "active": true
+}
+```
+
+**Schema:**
+```
+{
+  i2 id m                    ; uint32 (4 bytes)
+  i4 name S i 16             ; fixed 16-byte string
+  i8 position {              ; nested object (24 bytes)
+    i1 x d
+    i1 y d
+    i1 z d
+  }
+  i8 readings [d d d d d]    ; array of 5 float64 (40 bytes)
+  i6 active T                ; boolean (1 byte)
+}
+```
+
+Record size: 4 + 16 + 24 + 40 + 1 = 85 bytes
+
+---
+
+### <a name="nd_soa"/>N-Dimensional SoA
+
+Both `[$` and `{$` support ND dimensions:
+
+```
+[$  {<schema>}  #[<dim1> <dim2> ...]  <payload>
+{$  {<schema>}  #[<dim1> <dim2> ...]  <payload>
+```
+
+**Example:** 4×3 grid of particles (row-major)
+```
+[ $ { i1 x d  i1 y d  i6 active T } # [ i 4  i 3 ]
+  <12 records in row-major order>
+```
+
+Total: 12 records × 17 bytes = 204 bytes
+
+### <a name="soa_example"/> SOA Example
+
+**Data:** 2 sensors
+
+```json
+[
+  {"id": 1, "pos": {"x": 1.0, "y": 2.0}, "val": [0.1, 0.2, 0.3], "on": true},
+  {"id": 2, "pos": {"x": 3.0, "y": 4.0}, "val": [0.4, 0.5, 0.6], "on": false}
+]
+```
+
+**Row-major encoding:**
+```
+Byte  Hex   Meaning
+----  ----  -------
+0     5B    [ (array-style SoA = row-major)
+1     24    $
+2     7B    { (schema start)
+3     69    i (int8 key length)
+4     02    2
+5-6   6964  "id"
+7     6D    m (uint32)
+8     69    i
+9     03    3
+10-12 706F73 "pos"
+13    7B    { (nested object start)
+14    69    i
+15    01    1
+16    78    "x"
+17    64    d (float64)
+18    69    i
+19    01    1
+20    79    "y"
+21    64    d (float64)
+22    7D    } (nested object end)
+23    69    i
+24    03    3
+25-27 76616C "val"
+28    5B    [ (array start)
+29    64    d (float64)
+30    64    d
+31    64    d
+32    5D    ] (array end)
+33    69    i
+34    02    2
+35-36 6F6E  "on"
+37    54    T (boolean type)
+38    7D    } (schema end)
+39    23    #
+40    69    i
+41    02    2 (count = 2)
+--- PAYLOAD (2 records × 45 bytes) ---
+42-45       id1: uint32 = 1
+46-53       pos.x1: float64 = 1.0
+54-61       pos.y1: float64 = 2.0
+62-69       val1[0]: float64 = 0.1
+70-77       val1[1]: float64 = 0.2
+78-85       val1[2]: float64 = 0.3
+86          on1: T (true)
+87-90       id2: uint32 = 2
+91-98       pos.x2: float64 = 3.0
+99-106      pos.y2: float64 = 4.0
+107-114     val2[0]: float64 = 0.4
+115-122     val2[1]: float64 = 0.5
+123-130     val2[2]: float64 = 0.6
+131         on2: F (false)
+```
+
+Record size: 4 + 8 + 8 + 24 + 1 = 45 bytes  
+Total: 42 (header) + 90 (payload) = 132 bytes
+
+
+### <a name="schema_marker_table"/>Permitted type markers in SOA schema
+
+| Marker | In Schema Means | Payload Size | Notes |
+|--------|-----------------|--------------|-------|
+| `U` | uint8 | 1 byte | |
+| `i` | int8 | 1 byte | |
+| `u` | uint16 | 2 bytes | |
+| `I` | int16 | 2 bytes | |
+| `l` | int32 | 4 bytes | |
+| `m` | uint32 | 4 bytes | |
+| `L` | int64 | 8 bytes | |
+| `M` | uint64 | 8 bytes | |
+| `h` | float16 | 2 bytes | |
+| `d` | float32 | 4 bytes | |
+| `D` | float64 | 8 bytes | |
+| `C` | char | 1 byte | |
+| `B` | byte | 1 byte | |
+| `T` | boolean | 1 byte | Payload: `T` or `F` |
+| `Z` | null/placeholder | 0 bytes | No payload |
+| `S` + len | fixed string | len bytes | No length prefix in payload |
+| `H` + len | fixed high-prec | len bytes | No length prefix in payload |
+| `{...}` | nested object | sum of fields | |
+| `[...]` | fixed array | sum of elements | |
+
 
 Recommended File Specifiers
 ------------------------------
