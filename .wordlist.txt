@@ -76,3 +76,4 @@ www
 ndarray
 neuroimaging
 parsers
+SoA
