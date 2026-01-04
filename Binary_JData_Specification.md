@@ -30,13 +30,12 @@ extended binary data types.
   - [Value types](#value_types)
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
-  - [Structrure-of-arrays (SOA)](#strucutre-of-arrays)
-    - [Row-major SOA](#row-major-soa)
-    - [Column-major SOA](#row-major_column-major)
+  - [Structure-of-arrays (SoA)](#strucutre-of-arrays)
+    - [Row- and column-major SoA](#row-major_column-major)
     - [Nested Containers in Schema](#nested_container_in_schema)
     - [N-Dmensional SoA](#nd_soa)
     - [SoA Example](#nd_soa)
-    - [Permitted type markers in SOA schema](#schema_marker_table)
+    - [Permitted type markers in SoA schema](#schema_marker_table)
 - [Recommended File Specifiers](#recommended-file-specifiers)
 - [Acknowledgement](#acknowledgement)
 
@@ -659,7 +658,8 @@ Optimized with both _type_ and _count_
 
 ## <a name="structure-of-arrays"/>Structure-of-Arrays (SoA)
 
-BJData supports **Structure-of-Arrays (SoA)** to store packed object data in either row-major or column-major orders.
+BJData supports **Structure-of-Arrays (SoA)**, as a special type of optimized container 
+to store packed object data in either row-major or column-major orders.
 
 ### SoA Container Syntax
 
@@ -904,7 +904,7 @@ Both `[$` and `{$` support ND dimensions:
 
 Total: 12 records × 17 bytes = 204 bytes
 
-### <a name="soa_example"/> SOA Example
+### <a name="soa_example"/> SoA Example
 
 **Data:** 2 sensors
 
@@ -976,7 +976,7 @@ Record size: 4 + 8 + 8 + 24 + 1 = 45 bytes
 Total: 42 (header) + 90 (payload) = 132 bytes
 
 
-### <a name="schema_marker_table"/>Permitted type markers in SOA schema
+### <a name="schema_marker_table"/>Permitted type markers in SoA schema
 
 | Marker | In Schema Means | Payload Size | Notes |
 |--------|-----------------|--------------|-------|
@@ -996,7 +996,7 @@ Total: 42 (header) + 90 (payload) = 132 bytes
 | `T` | boolean | 1 byte | Payload: `T` or `F` |
 | `Z` | null/placeholder | 0 bytes | No payload |
 | `S` + len | fixed string | len bytes | No length prefix in payload |
-| `H` + len | fixed high-prec | len bytes | No length prefix in payload |
+| `H` + len | fixed high-precision | len bytes | No length prefix in payload |
 | `{...}` | nested object | sum of fields | |
 | `[...]` | fixed array | sum of elements | |
 
