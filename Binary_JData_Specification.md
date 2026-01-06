@@ -31,10 +31,11 @@ extended binary data types.
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
   - [Structure-of-arrays (SoA)](#strucutre-of-arrays)
+    - [SoA container syntax](#soa_syntax)
     - [Row- and column-major SoA](#row-major_column-major)
-    - [Nested Containers in Schema](#nested_container_in_schema)
-    - [N-Dmensional SoA](#nd_soa)
-    - [SoA Example](#nd_soa)
+    - [Nested containers in schema](#nested_container_in_schema)
+    - [N-dimensional SoA](#nd_soa)
+    - [SoA example](#nd_soa)
     - [Permitted type markers in SoA schema](#schema_marker_table)
 - [Recommended File Specifiers](#recommended-file-specifiers)
 - [Acknowledgement](#acknowledgement)
@@ -661,7 +662,7 @@ Optimized with both _type_ and _count_
 BJData supports **Structure-of-Arrays (SoA)**, as a special type of optimized container 
 to store packed object data in either row-major or column-major orders.
 
-### SoA Container Syntax
+### <a name="soa_syntax"/>SoA Container Syntax
 
 #### Core Syntax
 
@@ -686,44 +687,166 @@ The schema is a **payload-less object**: keys followed by type markers only, no 
 schema        = '{' 1*(field-def) '}'
 field-def     = name type-spec
 name          = int-type length string-bytes
-type-spec     = fixed-type | bool-type | null-type | fixed-string | fixed-highprec 
-              | nested-schema | fixed-array
+type-spec     = fixed-type | bool-type | null-type | string-spec | highprec-spec
+              | nested-schema | array-spec
 fixed-type    = 'U' | 'i' | 'u' | 'I' | 'l' | 'm' | 'L' | 'M' | 'h' | 'd' | 'D' | 'C' | 'B'
 bool-type     = 'T'                        ; boolean (1 byte: T or F in payload)
 null-type     = 'Z'                        ; null (0 bytes in payload)
+string-spec   = fixed-string | dict-string | offset-string
 fixed-string  = 'S' int-type length        ; fixed-size string
+dict-string   = '[' '$' 'S' '#' count 1*(string-value)   ; dictionary-based string
+offset-string = '[' '$' int-type ']'       ; offset-table-based variable string
+highprec-spec = fixed-highprec | dict-highprec | offset-highprec
 fixed-highprec= 'H' int-type length        ; fixed-size high-precision number
+dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) ; dictionary-based high-prec
+offset-highprec = '[' '$' int-type ']'     ; offset-table-based variable high-prec (same as string)
 nested-schema = '{' 1*(field-def) '}'
-fixed-array   = '[' 1*(type-spec) ']'      ; regular array with explicit types
+array-spec    = '[' 1*(type-spec) ']'      ; fixed array with explicit element types
 ```
 
 **Key rules:**
 1. Fixed-length numeric types: `U i u I l m L M h d D C B`
 2. `T` in schema means "boolean type" - each value is 1 byte (`T` or `F` marker) in payload
 3. `Z` in schema means "null field" - no bytes in payload (placeholder/reserved field)
-4. `S` and `H` require a length specifier, making them fixed-length
-5. Nested objects `{...}` are allowed if all fields are fixed-length
-6. Fixed arrays use regular syntax `[type type ...]` - no optimized containers inside schema
-7. **No `$` or `#` markers allowed anywhere inside the schema**
-8. `F` and `N` are not used in schema (use `T` for boolean, `Z` for null)
+4. Strings (`S`) and high-precision numbers (`H`) support three storage modes:
+   - **Fixed-length:** `S <int-type> <length>` or `H <int-type> <length>`
+   - **Dictionary-based:** `[$S#<count><str1><str2>...` or `[$H#<count><val1><val2>...`
+   - **Offset-table-based:** `[$<int-type>]`
+5. Nested objects `{...}` are allowed if all fields use supported types
+6. No optimized containers can be used inside the schema, except in the case of serving as
+   dictionary/offset-table markers for variable-length strings, as described in #4 above
+7. `F` and `N` are not used in schema (use `T` for boolean, `Z` for null)
 
-#### Fixed-Length Strings (`S`) and High-Precision Numbers (`H`)
+---
 
-In normal BJData, `S` and `H` are variable-length:
-```
-S i 5 h e l l o          ; string value, length 5
-H i 3 1 2 3              ; high-precision value "123"
-```
+### <a name="variable_length_strings"/>Variable and fixed-length string storage
 
-In a **schema context**, they define fixed-length types:
+#### Mode 1: Fixed-length storage (`S`/`H` with length)
+
+In a **schema context**, `S` and `H` followed by an integer define fixed-length strings or high-precision numbers:
 ```
 { i4 name S i 16 }       ; "name" is a 16-byte fixed string
 { i5 value H i 32 }      ; "value" is a 32-byte fixed high-precision number
 ```
 
-In the payload, each record contributes exactly the specified bytes - no length prefix. Strings shorter than the length are right-padded with null bytes (0x00).
+In the payload, each record contributes exactly the specified bytes - no length prefix. 
+Strings shorter than the length are right-padded with null bytes (0x00).
 
-#### Boolean Type (`T`)
+**Use case:** Strings with known maximum length (codes, IDs, short labels).
+
+---
+
+#### Mode 2: Dictionary-based storage (`[$S#<n>...` or `[$H#<n>...`)
+
+A dictionary for mapping string-value rows/columns should be indicated by
+a payload-less optimized string-array.
+
+**Use case:** Repeated/categorical string values with low cardinality.
+
+**Schema syntax:**
+```
+[$S#<count><str1><str2>...
+[$H#<count><val1><val2>...
+```
+
+where each string/value is encoded as a standard BJData string or high-precision number 
+(with length prefix). No closing `]` is needed because the count is specified.
+
+**Example schema:**
+```
+{
+  i6 status [$S#i 3                    ; dictionary with 3 string values
+    i 6 active                         ; index 0: "active"
+    i 8 inactive                       ; index 1: "inactive"  
+    i 7 pending                        ; index 2: "pending"
+}
+```
+
+**Payload encoding:** Each record stores a single integer index referencing the dictionary.
+The index type is automatically determined as the smallest unsigned integer type that can 
+represent the dictionary size:
+- count ≤ 255: `U` (uint8, 1 byte)
+- count ≤ 65535: `u` (uint16, 2 bytes)
+- count ≤ 4294967295: `m` (uint32, 4 bytes)
+- otherwise: `M` (uint64, 8 bytes)
+
+**Benefits:**
+- Excellent compression for low-cardinality categorical data
+- O(1) lookup for string values
+- Payload remains fixed-size per record
+
+---
+
+#### Mode 3: Offset-table-based storage (`[$<type>]`)
+
+An offset-table based storage is used for storing string vectors of variable lengths.
+It first concatenates all strings into a single linear buffer, and assigns an integer as
+the offset from the begining of the buffer for each string element. The use of 
+offset-table should be indicated by an payload-less optimized array containing only the
+optimized type `[$<type>]`.
+
+
+**Use case:** Diverse strings with highly variable lengths (names, descriptions, free text).
+
+**Schema syntax:**
+```
+[$<offset-type>]
+```
+
+Where `<offset-type>` is an integer type (`i`, `U`, `I`, `u`, `l`, `m`, `L`, `M`) 
+specifying the byte-offset type stored in the payload.
+
+**Example schema:**
+```
+{
+  i2 id m                    ; uint32 (4 bytes in payload)
+  i4 name [$l]               ; variable string with int32 offsets
+  i5 value d                 ; float64 (8 bytes in payload)
+}
+```
+
+**Storage structure:**
+
+The offset-table-based string field stores an offset index in the fixed payload area.
+After all record payloads, an offset table and concatenated string buffer are appended:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Schema Header                                                   │
+├─────────────────────────────────────────────────────────────────┤
+│ Fixed-size payload (N records)                                  │
+│   - Each string field position stores a sequential index (0..N-1)│
+│   - Other fields store actual values                            │
+├─────────────────────────────────────────────────────────────────┤
+│ Offset Table: (N+1) offsets of <offset-type>                    │
+│   [0, end1, end2, ..., end_N]                                    │
+├─────────────────────────────────────────────────────────────────┤
+│ String Buffer: concatenated strings (no length prefixes)        │
+│   str1 ∥ str2 ∥ str3 ∥ ... ∥ str_N                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Decoding string i:**
+```
+offset_start = offset_table[i]
+offset_end = offset_table[i+1]
+string_i = string_buffer[offset_start:offset_end]
+```
+
+**Multiple variable-length fields:** When a schema contains multiple offset-table-based 
+fields, their offset tables and string buffers are appended in schema field order.
+
+**Empty strings:** Represented by consecutive identical offsets in the offset table.
+
+**Benefits:**
+- Efficient for highly variable string lengths
+- No wasted padding bytes
+- Random access via offset table
+- String buffer can be memory-mapped
+
+---
+
+### Boolean type (`T`)
 
 In normal BJData, `T` and `F` are zero-length value markers:
 ```
@@ -736,9 +859,12 @@ In a **schema context**, `T` means "boolean type" - a 1-byte field:
 { i6 active T }          ; "active" is a boolean field
 ```
 
-In the payload, each boolean value is stored as a single byte: `T` (0x54) for true, `F` (0x46) for false.
+In the payload, each boolean value is stored as a single byte: `T` (0x54) for true, 
+`F` (0x46) for false.
 
-#### Null Type (`Z`)
+---
+
+### Null type (`Z`)
 
 In a **schema context**, `Z` means "null/placeholder field" with **zero bytes** in payload:
 ```
@@ -758,7 +884,7 @@ This is useful for:
 
 ### <a name="row-major_column-major"/>Row-Major vs Column-Major Layout
 
-Using existing container markers (no new markers needed):
+Using existing container markers:
 
 | Syntax | Layout | Description |
 |--------|--------|-------------|
@@ -771,27 +897,27 @@ Using existing container markers (no new markers needed):
 [$  {<schema>}  #<count>  <interleaved-payload>
 ```
 
-Payload order: `<record1><record2><record3>...`
+Payload order: `<record₁><record₂><record₃>...`
 
 **Example:** 3 particles with `{x:float64, y:float64, id:uint32, active:bool}`
 ```
 [ $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
-  <x1:8><y1:8><id1:4><active1:1>  <x2:8><y2:8><id2:4><active2:1>  ...
+  <x₁:8><y₁:8><id₁:4><active₁:1>  <x₂:8><y₂:8><id₂:4><active₂:1>  ...
 ```
 Payload: 3 × 21 bytes = 63 bytes, interleaved
 
-#### Column-Major: `{$`
+#### Column-major layout: `{$`
 
 ```
 {$  {<schema>}  #<count>  <columnar-payload>
 ```
 
-Payload order: `<all field1 values><all field2 values>...`
+Payload order: `<all field₁ values><all field₂ values>...`
 
 **Example:** Same 3 particles
 ```
 { $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
-  <x1:8><x2:8><x3:8>  <y1:8><y2:8><y3:8>  <id1:4><id2:4><id3:4>  <T><F><T>
+  <x₁:8><x₂:8><x₃:8>  <y₁:8><y₂:8><y₃:8>  <id₁:4><id₂:4><id₃:4>  <T><F><T>
 ```
 Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
@@ -804,7 +930,7 @@ Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
 ### <a name="nested_container_in_schema"/>Nested Containers in Schema
 
-#### Nested Objects
+#### Nested objects
 
 ```
 {
@@ -821,9 +947,9 @@ Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
 Record size: 32 + 24 + 1 + 1 = 58 bytes
 
-#### Fixed-Length Arrays in Schema
+#### Fixed-length arrays in schema
 
-Use regular array syntax with repeated type markers:
+Use array syntax with repeated type markers:
 
 ```
 {
@@ -856,35 +982,6 @@ For longer arrays, repeat the type marker:
 
 Record size: 24 + 6 + 4 + 1 = 35 bytes
 
-#### Combined Example
-
-```json
-{
-  "id": 12345,
-  "name": "sensor_01",
-  "position": {"x": 1.0, "y": 2.0, "z": 3.0},
-  "readings": [0.1, 0.2, 0.3, 0.4, 0.5],
-  "active": true
-}
-```
-
-**Schema:**
-```
-{
-  i2 id m                    ; uint32 (4 bytes)
-  i4 name S i 16             ; fixed 16-byte string
-  i8 position {              ; nested object (24 bytes)
-    i1 x d
-    i1 y d
-    i1 z d
-  }
-  i8 readings [d d d d d]    ; array of 5 float64 (40 bytes)
-  i6 active T                ; boolean (1 byte)
-}
-```
-
-Record size: 4 + 16 + 24 + 40 + 1 = 85 bytes
-
 ---
 
 ### <a name="nd_soa"/>N-Dimensional SoA
@@ -892,8 +989,8 @@ Record size: 4 + 16 + 24 + 40 + 1 = 85 bytes
 Both `[$` and `{$` support ND dimensions:
 
 ```
-[$  {<schema>}  #[<dim1> <dim2> ...]  <payload>
-{$  {<schema>}  #[<dim1> <dim2> ...]  <payload>
+[$  {<schema>}  #[<dim₁> <dim₂> ...]  <payload>
+{$  {<schema>}  #[<dim₁> <dim₂> ...]  <payload>
 ```
 
 **Example:** 4×3 grid of particles (row-major)
@@ -904,7 +1001,11 @@ Both `[$` and `{$` support ND dimensions:
 
 Total: 12 records × 17 bytes = 204 bytes
 
-### <a name="soa_example"/> SoA Example
+---
+
+### <a name="soa_example"/>SoA Examples
+
+#### Example 1: Fixed-Length Fields Only
 
 **Data:** 2 sensors
 
@@ -956,27 +1057,76 @@ Byte  Hex   Meaning
 40    69    i
 41    02    2 (count = 2)
 --- PAYLOAD (2 records × 45 bytes) ---
-42-45       id1: uint32 = 1
-46-53       pos.x1: float64 = 1.0
-54-61       pos.y1: float64 = 2.0
-62-69       val1[0]: float64 = 0.1
-70-77       val1[1]: float64 = 0.2
-78-85       val1[2]: float64 = 0.3
-86          on1: T (true)
-87-90       id2: uint32 = 2
-91-98       pos.x2: float64 = 3.0
-99-106      pos.y2: float64 = 4.0
-107-114     val2[0]: float64 = 0.4
-115-122     val2[1]: float64 = 0.5
-123-130     val2[2]: float64 = 0.6
-131         on2: F (false)
+42-45       id₁: uint32 = 1
+46-53       pos.x₁: float64 = 1.0
+54-61       pos.y₁: float64 = 2.0
+62-69       val₁[0]: float64 = 0.1
+70-77       val₁[1]: float64 = 0.2
+78-85       val₁[2]: float64 = 0.3
+86          on₁: T (true)
+87-90       id₂: uint32 = 2
+91-98       pos.x₂: float64 = 3.0
+99-106      pos.y₂: float64 = 4.0
+107-114     val₂[0]: float64 = 0.4
+115-122     val₂[1]: float64 = 0.5
+123-130     val₂[2]: float64 = 0.6
+131         on₂: F (false)
 ```
 
 Record size: 4 + 8 + 8 + 24 + 1 = 45 bytes  
 Total: 42 (header) + 90 (payload) = 132 bytes
 
+---
 
-### <a name="schema_marker_table"/>Permitted type markers in SoA schema
+#### Example 2: Variable-Length String Fields
+
+**Data:** 3 users with variable-length names and categorical status
+
+```json
+[
+  {"id": 1, "status": "active", "name": "Alice", "code": "U001"},
+  {"id": 2, "status": "pending", "name": "Bob", "code": "U002"},
+  {"id": 3, "status": "active", "name": "Dr. Christopher Williams", "code": "U003"}
+]
+```
+
+**Schema (block notation):**
+```
+[{]
+  [i][2][id][m]                        ; uint32 (4 bytes)
+  [i][6][status][$][S][#][i][3]        ; dictionary with 3 values
+    [i][6][active]                     ; index 0
+    [i][8][inactive]                   ; index 1
+    [i][7][pending]                    ; index 2
+  [i][4][name][$][l][]]                ; offset-based variable string (int32 offsets)
+  [i][4][code][S][i][4]                ; fixed 4-byte string
+[}]
+```
+
+**Record payload size:** 4 (id) + 1 (status index) + 4 (name offset index) + 4 (code) = 13 bytes
+
+**Memory layout (row-major):**
+```
+┌──────────────────────────────────────────────────────────────┐
+│ HEADER (schema + count = 3)                                  │
+├──────────────────────────────────────────────────────────────┤
+│ Record 1: [id=1] [status_idx=0] [name_idx=0] [code="U001"]   │  13 bytes
+│ Record 2: [id=2] [status_idx=2] [name_idx=1] [code="U002"]   │  13 bytes
+│ Record 3: [id=3] [status_idx=0] [name_idx=2] [code="U003"]   │  13 bytes
+├──────────────────────────────────────────────────────────────┤
+│ Name Offset Table (4 × int32):                               │
+│   [0, 5, 8, 32]                                              │  16 bytes
+├──────────────────────────────────────────────────────────────┤
+│ Name String Buffer:                                          │
+│   "AliceBobDr. Christopher Williams"                         │  32 bytes
+└──────────────────────────────────────────────────────────────┘
+```
+
+Total: header + 39 (records) + 16 (offset table) + 32 (strings) = header + 87 bytes
+
+---
+
+### <a name="schema_marker_table"/>Permitted Type Markers in SoA Schema
 
 | Marker | In Schema Means | Payload Size | Notes |
 |--------|-----------------|--------------|-------|
@@ -993,12 +1143,15 @@ Total: 42 (header) + 90 (payload) = 132 bytes
 | `D` | float64 | 8 bytes | |
 | `C` | char | 1 byte | |
 | `B` | byte | 1 byte | |
-| `T` | boolean | 1 byte | Payload: `T` or `F` |
+| `T` | boolean | 1 byte | Payload: `T` or `F` marker |
 | `Z` | null/placeholder | 0 bytes | No payload |
-| `S` + len | fixed string | len bytes | No length prefix in payload |
-| `H` + len | fixed high-precision | len bytes | No length prefix in payload |
-| `{...}` | nested object | sum of fields | |
-| `[...]` | fixed array | sum of elements | |
+| `S <int> <len>` | fixed string | `len` bytes | No length prefix in payload |
+| `H <int> <len>` | fixed high-precision | `len` bytes | No length prefix in payload |
+| `[$S#<n>...` | dictionary string | 1-8 bytes | Index into embedded dictionary |
+| `[$H#<n>...` | dictionary high-prec | 1-8 bytes | Index into embedded dictionary |
+| `[$<type>]` | offset-based string/H | sizeof(type) | Offset table + buffer appended |
+| `{...}` | nested object | sum of fields | All fields must be supported types |
+| `[...]` | fixed array | sum of elements | Explicit element types listed |
 
 
 Recommended File Specifiers
