@@ -61,7 +61,7 @@ array of binary JSON formats, such as BSON (Binary JSON, https://bson.org),
 UBJSON (Universal Binary JSON, https://ubjson.org), MessagePack 
 (https://msgpack.org), and CBOR (Concise Binary Object Representation, 
 [RFC 7049], https://cbor.io), among others. These binary JSON counterparts 
-are broadly adopted in speed-sensitive data applications and vary in terms 
+are broadly adopted in speed/space-sensitive data applications and vary in terms 
 of supported data types, flexibility of containers (arrays and objects), and 
 associated libraries.
 
@@ -525,15 +525,15 @@ bytes while parsing.
 [#][i][64]
 ```
 
-### Optimized binary array
-When an array of _type_ `B` is specified the parser shall use an optimized data storage
-format to represent binary data where applicable, as opposed to a generic array of integers.
-Similarly, explicit binary data should be serialized as such to allow for parsers to
-make use of the optimization.
+### Optimized array
 
-If such a data storage format is not available, an array of integers shall be used.
+An optimized array has a **uniform payload**, i.e., all data records stored inside the payload
+section have the same data type and byte length, and thus can help accelerate loading
+and saving of such data.
+
 
 ### Optimized N-dimensional array of uniform type
+
 When both _type_ and _count_ are specified and the _count_ marker `#` is followed 
 by `[`, the parser should expect the following sequence to be a 1-D `array` with 
 zero or more (`Ndim`) integer elements (`Nx, Ny, Nz, ...`). This specifies an 
@@ -653,7 +653,10 @@ Optimized with both _type_ and _count_
 ## <a name="structure-of-arrays"/>Structure-of-Arrays (SoA)
 
 BJData supports **Structure-of-Arrays (SoA)**, as a special type of optimized container 
-to store packed object data in either row-major or column-major orders.
+to store packed object data in either column-major or row-major orders. The payload
+in an SoA record are packed in the column or row order with chunks of binary data of
+identical byte length. This **uniform columnar payload structure** makes it efficient
+to parse and store.
 
 ### <a name="soa_syntax"/>SoA Container Syntax
 
@@ -1195,7 +1198,7 @@ An extension with type ID 10 (UUID) containing 16 bytes of data:
 
 ---
 
-### Reserved Extension Types (0–255)
+### <a name="reserved-extension-types"/>Reserved Extension Types (0–255)
 
 The following extension type IDs are reserved and defined by this specification. 
 Each reserved type has exactly **one fixed payload size** for unambiguous parsing.
