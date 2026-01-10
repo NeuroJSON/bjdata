@@ -43,63 +43,52 @@ extended binary data types.
 Introduction
 ------------------------------
 
-The Javascript Object Notation (JSON) format, formally known as the ECMA-404 
-or ISO21778:2017 standard, is ubiquitously used in today's web and native 
-applications. JSON presents numerous advantages, such as human readability, 
-generality for accommodating complex hierarchical data, self-documentation, and 
-abundant existing free and commercial libraries. However, its utility is largely 
-restricted to the storage of lightweight textural data, and has very limited presence 
-in many data-intensive and performance-demanding applications, such as database
-backends, medical imaging, and scientific data storage.
- 
-The lack of support for strongly-typed and binary data has been one of the main 
-barriers towards widespread adoption of JSON in these domains. In recent years, 
-efforts to address these limitation have resulted in an array of versatile binary 
-JSON formats, such as BSON (Binary JSON, https://bson.org), UBJSON (Universal Binary 
-JSON, https://ubjson.org), MessagePack (https://msgpack.org), CBOR (Concise Binary 
-Object Representation, [RFC 7049], https://cbor.io) etc. These binary JSON 
-counterparts are broadly used in speed-sensitive data processing applications and
-address various needs from a diverse range of applications.
- 
-To better champion findable, accessible, interoperable, and reusable 
-([FAIR principle](https://www.nature.com/articles/sdata201618)) data in 
-scientific data storage and management, we have created the **NeuroJSON Project**
-(https://neurojson.org) to develop a set of open-standards for portable, human-readable 
-and high-performance data annotation and serialization aimed towards enabling
-neuroimaging researchers, scientific researchers, IT engineers, as well as general 
-data users to efficiently annotate and store complex data structures arising 
-from diverse applications.
- 
-The NeuroJSON data sharing framework first converts complex data structures, such as N-D
-arrays, trees, tables and graphs, into easy-to-serialize, portable data annotations
-via the **JData Specification** (https://github.com/NeuroJSON/jdata) and then serializes 
-and stores the annotated JData constructs using widely-supported data formats. 
-To balance data portability, readability and efficiency, NeuroJSON defines a 
-**dual-interface**: a text-based format **syntactically compatible with JSON**,
-and a binary-JSON format to achieve significantly smaller file sizes and faster 
-encoding/decoding.
- 
-The Binary JData (BJData) format is the **official binary interface** for the JData 
-Specification. It is derived from the widely supported UBJSON Specification 
-Draft 12 (https://github.com/ubjson/universal-binary-json), and adds native
-support for **N-dimensional packed arrays** - an essential data structure for
-scientific applications - as well as extended binary data types, including unsigned
-integer types and half-precision floating-point numbers. The new data constructs
-also allow a BJData file to store binary arrays larger than 4 GB in size, which
-is not currently possible with MessagePack (maximum data record size is limited
-to 4 GB) and BSON (maximum total file size is 4 GB).
- 
-A key rationale for basing the BJData format upon UBJSON as opposed to 
-other more popular binary JSON-like formats, such as BSON, CBOR and MessagePack, 
-is UBJSON's **quasi-human-readability** - a unique characteristic that is 
-absent from almost all other binary formats. This is because all data semantic 
-elements in a UBJSON/BJData file, e.g. the "name" fields and data-type markers, 
-are defined in human-readable strings. The resulting binary files are not only
-capable of storing complex and hierarchical binary data structures, but also 
-directly readable using an editor with minimal or no processing. We anticipate that
-such a unique capability, in combination with the highly portable JData annotation 
-keywords, makes a data file self-explanatory, easy to reuse, and easy to 
-inter-operate in complex applications.
+The Javascript Object Notation (JSON) format is ubiquitously used in today's 
+web and native applications. JSON offers numerous advantages, including 
+simplicity, human- and machine-readability, and versatility, with a large 
+toolchain ecosystem ranging from numerous parsers to highly efficient 
+document-store databases. However, its plain-text nature and schema-less 
+design make it difficult to efficiently store and exchange strongly-typed 
+binary data, including numerical and multi-dimensional arrays and other 
+complex data structures generated in scientific research and imaging 
+applications.
+
+In recent years, efforts to address these limitations have resulted in an 
+array of binary JSON formats, such as BSON (Binary JSON, https://bson.org), 
+UBJSON (Universal Binary JSON, https://ubjson.org), MessagePack 
+(https://msgpack.org), and CBOR (Concise Binary Object Representation, 
+[RFC 7049], https://cbor.io), among others. These binary JSON counterparts 
+are broadly adopted in speed-sensitive data applications and vary in terms 
+of supported data types, flexibility of containers (arrays and objects), and 
+associated libraries.
+
+The Binary JData (BJData) format is a binary JSON format extended from the 
+UBJSON Specification Draft 12 (https://github.com/ubjson/universal-binary-json) 
+by adding native support for **N-dimensional packed arrays** - an essential data 
+structure for scientific applications - and **columnar table format** for packed 
+objects to offer efficient storage of tables and repeating objects, such as 
+Python Pandas DataFrames and NumPy arrays-of-objects. These optimized 
+container constructs greatly reduce storage overhead and redundancy, 
+enhancing data exchange efficiency.
+
+In addition, BJData also extends binary data types that UBJSON failed to 
+support, including unsigned integer types, half-precision floating-point 
+numbers, a native byte type, as well as user-defined binary extensions. With 
+these extensions, a BJData file can store binary arrays larger than 4 GB in 
+size, which is not possible with MessagePack (maximum data record size is 
+limited to 4 GB) or BSON (maximum total file size is 4 GB). Despite these 
+extensions, the BJData format remains simple to parse.
+
+An outstanding benefit of the BJData format (and its predecessor UBJSON) as 
+opposed to other more popular binary JSON-like formats, such as BSON, CBOR, 
+and MessagePack, is its **quasi-human-readability** - a unique characteristic 
+that is absent from almost all other binary formats. This is because all 
+data semantic elements in a BJData file, e.g. the "name" fields and 
+data-type markers, are defined in human-readable strings. The resulting 
+binary can be partially readable using an editor with minimal or no 
+processing. We anticipate that such a unique capability makes a data file 
+self-explanatory and easy to support without compromising computational and 
+storage efficiency.
 
 
 License
