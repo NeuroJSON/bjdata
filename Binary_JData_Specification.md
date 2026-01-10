@@ -70,7 +70,7 @@ UBJSON Specification Draft 12 (https://github.com/ubjson/universal-binary-json)
 by adding native support for **N-dimensional packed arrays** - an essential data 
 structure for scientific applications - and **columnar table format** for packed 
 objects to offer efficient storage of tables and repeating objects, such as 
-Python Pandas DataFrames and NumPy arrays-of-objects. These optimized 
+Python Pandas DataFrame and NumPy arrays-of-objects. These optimized 
 container constructs greatly reduce storage overhead and redundancy, 
 enhancing data exchange efficiency.
 
@@ -734,7 +734,7 @@ Strings shorter than the length are right-padded with null bytes (0x00).
 A dictionary for mapping string-value rows/columns should be indicated by
 a payload-less optimized string-array.
 
-**Use case:** Repeated/categorical string values with low cardinality.
+**Use case:** Repeated/categorical string values.
 
 **Schema syntax:**
 ```
@@ -774,7 +774,7 @@ represent the dictionary size:
 
 An offset-table based storage is used for storing string vectors of variable lengths.
 It first concatenates all strings into a single linear buffer, and assigns an integer as
-the offset from the begining of the buffer for each string element. The use of 
+the offset from the beginning of the buffer for each string element. The use of 
 offset-table should be indicated by an payload-less optimized array containing only the
 optimized type `[$<type>]`.
 
@@ -1330,7 +1330,7 @@ Represents a calendar date without time-of-day information.
   - Range: [1, 12]
 - **day**: Unsigned 8-bit integer (byte 3)
   - Range: [1, 31]
-- Uses proleptic Gregorian calendar
+- Uses Gregorian calendar
 
 ##### Example
 
@@ -1390,7 +1390,7 @@ the datetime interpretation.
 
 ##### Example
 
-Datetime for 2024-01-15 10:30:00.123456 UTC:
+DateTime for 2024-01-15 10:30:00.123456 UTC:
 ```
 [E][U][6][U][8][0x40][0x15][0xE3][0xED][0xED][0x0C][0x06][0x00]
 ```
@@ -1434,7 +1434,7 @@ Duration of 5 days, 3 hours, 30 minutes, 15.5 seconds (= 444615500000 μs):
 #### <a name="ext_complex64"/>complex64 (Type ID: 8)
 
 Represents a complex number with single-precision (32-bit) floating-point 
-components. Compatible with NumPy's `complex64` dtype.
+components. Compatible with NumPy's `complex64` data type.
 
 ##### Payload Format (8 bytes)
 
@@ -1463,7 +1463,7 @@ Complex number `3.0 + 4.0i`:
 #### <a name="ext_complex128"/>complex128 (Type ID: 9)
 
 Represents a complex number with double-precision (64-bit) floating-point 
-components. Compatible with NumPy's `complex128` dtype and Python's `complex`.
+components. Compatible with NumPy's `complex128` data type and Python's `complex`.
 
 ##### Payload Format (16 bytes)
 
