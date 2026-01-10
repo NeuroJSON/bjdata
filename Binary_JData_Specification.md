@@ -30,13 +30,16 @@ extended binary data types.
   - [Value types](#value_types)
   - [Container types](#container_types)
   - [Optimized format](#container_optimized)
-  - [Structure-of-arrays (SoA)](#strucutre-of-arrays)
+  - [Structure-of-arrays (SoA)](#structure-of-arrays)
     - [SoA container syntax](#soa_syntax)
     - [Row- and column-major SoA](#row-major_column-major)
     - [Nested containers in schema](#nested_container_in_schema)
     - [N-dimensional SoA](#nd_soa)
     - [SoA example](#nd_soa)
     - [Permitted type markers in SoA schema](#schema_marker_table)
+  - [Extension](#value_extension)
+    - [Reserved Extension Types (0–255)](#reserved-extension-types)
+    - [Implementation Notes](#implementation-notes)
 - [Recommended File Specifiers](#recommended-file-specifiers)
 - [Acknowledgement](#acknowledgement)
 
@@ -80,7 +83,7 @@ limited to 4 GB) or BSON (maximum total file size is 4 GB). Despite these
 extensions, the BJData format remains simple to parse.
 
 An outstanding benefit of the BJData format (and its predecessor UBJSON) as 
-opposed to other more popular binary JSON-like formats, such as BSON, CBOR, 
+opposed to other more popular binary JSON formats, such as BSON, CBOR, 
 and MessagePack, is its **quasi-human-readability** - a unique characteristic 
 that is absent from almost all other binary formats. This is because all 
 data semantic elements in a BJData file, e.g. the "name" fields and 
@@ -171,6 +174,7 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
 [char](#value_char) | 2 bytes | *C* | No | Yes
 [byte](#value_byte) | 2 bytes | *B* | No | Yes
+[extension](#value_extension) | 1 byte + int num val + int num val + payload | *E* | Yes | Yes (if not empty)
 [string](#value_string) | 1 byte + int num val + string byte len | *S* | Yes | Yes (if not empty)
 [array](#container_array) | 2+ bytes | *\[* and *\]* | Optional | Yes (if not empty)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
@@ -679,18 +683,18 @@ name          = int-type length string-bytes
 type-spec     = fixed-type | bool-type | null-type | string-spec | highprec-spec
               | nested-schema | array-spec
 fixed-type    = 'U' | 'i' | 'u' | 'I' | 'l' | 'm' | 'L' | 'M' | 'h' | 'd' | 'D' | 'C' | 'B'
-bool-type     = 'T'                        ; boolean (1 byte: T or F in payload)
-null-type     = 'Z'                        ; null (0 bytes in payload)
+bool-type     = 'T'                        // boolean (1 byte: T or F in payload)
+null-type     = 'Z'                        // null (0 bytes in payload)
 string-spec   = fixed-string | dict-string | offset-string
-fixed-string  = 'S' int-type length        ; fixed-size string
-dict-string   = '[' '$' 'S' '#' count 1*(string-value)   ; dictionary-based string
-offset-string = '[' '$' int-type ']'       ; offset-table-based variable string
+fixed-string  = 'S' int-type length        // fixed-size string
+dict-string   = '[' '$' 'S' '#' count 1*(string-value)   // dictionary-based string
+offset-string = '[' '$' int-type ']'       // offset-table-based variable string
 highprec-spec = fixed-highprec | dict-highprec | offset-highprec
-fixed-highprec= 'H' int-type length        ; fixed-size high-precision number
-dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) ; dictionary-based high-prec
-offset-highprec = '[' '$' int-type ']'     ; offset-table-based variable high-prec (same as string)
+fixed-highprec= 'H' int-type length        // fixed-size high-precision number
+dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) // dictionary-based high-prec
+offset-highprec = '[' '$' int-type ']'     // offset-table-based variable high-prec (same as string)
 nested-schema = '{' 1*(field-def) '}'
-array-spec    = '[' 1*(type-spec) ']'      ; fixed array with explicit element types
+array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element types
 ```
 
 **Key rules:**
@@ -714,8 +718,8 @@ array-spec    = '[' 1*(type-spec) ']'      ; fixed array with explicit element t
 
 In a **schema context**, `S` and `H` followed by an integer define fixed-length strings or high-precision numbers:
 ```
-{ i4 name S i 16 }       ; "name" is a 16-byte fixed string
-{ i5 value H i 32 }      ; "value" is a 32-byte fixed high-precision number
+{ i4 name S i 16 }       // "name" is a 16-byte fixed string
+{ i5 value H i 32 }      // "value" is a 32-byte fixed high-precision number
 ```
 
 In the payload, each record contributes exactly the specified bytes - no length prefix. 
@@ -744,10 +748,10 @@ where each string/value is encoded as a standard BJData string or high-precision
 **Example schema:**
 ```
 {
-  i6 status [$S#i 3                    ; dictionary with 3 string values
-    i 6 active                         ; index 0: "active"
-    i 8 inactive                       ; index 1: "inactive"  
-    i 7 pending                        ; index 2: "pending"
+  i6 status [$S#i 3                    // dictionary with 3 string values
+    i 6 active                         // index 0: "active"
+    i 8 inactive                       // index 1: "inactive"  
+    i 7 pending                        // index 2: "pending"
 }
 ```
 
@@ -788,9 +792,9 @@ specifying the byte-offset type stored in the payload.
 **Example schema:**
 ```
 {
-  i2 id m                    ; uint32 (4 bytes in payload)
-  i4 name [$l]               ; variable string with int32 offsets
-  i5 value d                 ; float64 (8 bytes in payload)
+  i2 id m                    // uint32 (4 bytes in payload)
+  i4 name [$l]               // variable string with int32 offsets
+  i5 value d                 // float64 (8 bytes in payload)
 }
 ```
 
@@ -839,13 +843,13 @@ fields, their offset tables and string buffers are appended in schema field orde
 
 In normal BJData, `T` and `F` are zero-length value markers:
 ```
-T                        ; true (no payload)
-F                        ; false (no payload)
+T                        // true (no payload)
+F                        // false (no payload)
 ```
 
 In a **schema context**, `T` means "boolean type" - a 1-byte field:
 ```
-{ i6 active T }          ; "active" is a boolean field
+{ i6 active T }          // "active" is a boolean field
 ```
 
 In the payload, each boolean value is stored as a single byte: `T` (0x54) for true, 
@@ -858,9 +862,9 @@ In the payload, each boolean value is stored as a single byte: `T` (0x54) for tr
 In a **schema context**, `Z` means "null/placeholder field" with **zero bytes** in payload:
 ```
 { 
-  i2 id m                ; uint32 (4 bytes)
-  i8 reserved Z          ; placeholder (0 bytes)
-  i4 data d              ; float64 (8 bytes)
+  i2 id m                // uint32 (4 bytes)
+  i8 reserved Z          // placeholder (0 bytes)
+  i4 data d              // float64 (8 bytes)
 }
 ```
 
@@ -923,14 +927,14 @@ Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
 ```
 {
-  i4 name S i 32           ; 32-byte fixed string
-  i8 position {            ; nested object (24 bytes total)
+  i4 name S i 32           // 32-byte fixed string
+  i8 position {            // nested object (24 bytes total)
     i1 x d
     i1 y d  
     i1 z d
   }
-  i6 active T              ; boolean (1 byte)
-  i5 flags U               ; uint8 (1 byte)
+  i6 active T              // boolean (1 byte)
+  i5 flags U               // uint8 (1 byte)
 }
 ```
 
@@ -942,10 +946,10 @@ Use array syntax with repeated type markers:
 
 ```
 {
-  i2 id m                  ; uint32 (4 bytes)
-  i3 pos [d d d]           ; array of 3 float64 (24 bytes)
-  i5 color [U U U U]       ; array of 4 uint8 (4 bytes)
-  i5 flags [T T T T]       ; array of 4 booleans (4 bytes)
+  i2 id m                  // uint32 (4 bytes)
+  i3 pos [d d d]           // array of 3 float64 (24 bytes)
+  i5 color [U U U U]       // array of 4 uint8 (4 bytes)
+  i5 flags [T T T T]       // array of 4 booleans (4 bytes)
 }
 ```
 
@@ -954,7 +958,7 @@ Record size: 4 + 24 + 4 + 4 = 36 bytes
 For longer arrays, repeat the type marker:
 ```
 {
-  i4 data [d d d d d d d d d d]   ; array of 10 float64 (80 bytes)
+  i4 data [d d d d d d d d d d]   // array of 10 float64 (80 bytes)
 }
 ```
 
@@ -962,10 +966,10 @@ For longer arrays, repeat the type marker:
 
 ```
 {
-  i6 vertex [d d d]        ; position: 3 float64 (24 bytes)
-  i6 normal [h h h]        ; normal: 3 float16 (6 bytes)
-  i5 color [U U U U]       ; RGBA: 4 uint8 (4 bytes)
-  i7 visible T             ; visibility: boolean (1 byte)
+  i6 vertex [d d d]        // position: 3 float64 (24 bytes)
+  i6 normal [h h h]        // normal: 3 float16 (6 bytes)
+  i5 color [U U U U]       // RGBA: 4 uint8 (4 bytes)
+  i7 visible T             // visibility: boolean (1 byte)
 }
 ```
 
@@ -1082,13 +1086,13 @@ Total: 42 (header) + 90 (payload) = 132 bytes
 **Schema (block notation):**
 ```
 [{]
-  [i][2][id][m]                        ; uint32 (4 bytes)
-  [i][6][status][$][S][#][i][3]        ; dictionary with 3 values
-    [i][6][active]                     ; index 0
-    [i][8][inactive]                   ; index 1
-    [i][7][pending]                    ; index 2
-  [i][4][name][$][l][]]                ; offset-based variable string (int32 offsets)
-  [i][4][code][S][i][4]                ; fixed 4-byte string
+  [i][2][id][m]                        // uint32 (4 bytes)
+  [i][6][status][$][S][#][i][3]        // dictionary with 3 values
+    [i][6][active]                     // index 0
+    [i][8][inactive]                   // index 1
+    [i][7][pending]                    // index 2
+  [i][4][name][$][l][]]                // offset-based variable string (int32 offsets)
+  [i][4][code][S][i][4]                // fixed 4-byte string
 [}]
 ```
 
@@ -1141,6 +1145,413 @@ Total: header + 39 (records) + 16 (offset table) + 32 (strings) = header + 87 by
 | `[$<type>]` | offset-based string/H | sizeof(type) | Offset table + buffer appended |
 | `{...}` | nested object | sum of fields | All fields must be supported types |
 | `[...]` | fixed array | sum of elements | Explicit element types listed |
+
+
+## <a name="value_extension"/>Extension
+
+The `extension` type in BJData provides a mechanism for storing application-specific 
+or predefined binary data types that are not natively supported by the core BJData 
+specification. This enables interoperability with other systems and future extensibility 
+without modifying the core format.
+
+### Format
+
+An extension value is encoded using the marker `E` followed by two integers and 
+a binary payload:
+
+```
+[E][type-id][byte-length][payload]
+```
+
+where:
+- **E** (0x45) - The 1-byte ASCII marker indicating an extension type
+- **type-id** - An integer value (`i`, `U`, `I`, `u`, `l`, `m`, `L`, or `M`) 
+  specifying the extension type identifier
+- **byte-length** - An integer value (`i`, `U`, `I`, `u`, `l`, `m`, `L`, or `M`) 
+  specifying the length of the payload in bytes
+- **payload** - A contiguous byte-stream of the specified length containing the 
+  extension data
+
+#### Type ID Ranges
+
+| Range | Description |
+|-------|-------------|
+| 0–255 | **Reserved** for predefined types defined by this specification |
+| 256+ | **Application-specific** types for user-defined extensions |
+
+Applications can assign type IDs 256 and above for custom data types. The meaning 
+of these IDs is determined by the application and should be documented separately.
+
+Reserved extension types (0–255) are limited to **fixed-byte-length** records to 
+ensure predictable parsing and efficient storage. Each reserved type ID corresponds 
+to exactly one fixed payload size.
+
+#### Example (block notation)
+
+An extension with type ID 10 (UUID) containing 16 bytes of data:
+```
+[E][U][10][U][16][...16 bytes of UUID data...]
+```
+
+---
+
+### Reserved Extension Types (0–255)
+
+The following extension type IDs are reserved and defined by this specification. 
+Each reserved type has exactly **one fixed payload size** for unambiguous parsing.
+Parsers that do not recognize a reserved type ID should treat the extension as 
+opaque binary data and preserve it for round-trip serialization.
+
+#### Type Summary
+
+| Type ID | Name | Payload Size | Description |
+|---------|------|--------------|-------------|
+| 0 | Reserved | — | Reserved for future use |
+| 1 | [epoch_s](#ext_epoch_s) | 4 bytes | Epoch time in seconds (uint32) |
+| 2 | [epoch_us](#ext_epoch_us) | 8 bytes | Epoch time in microseconds (int64) |
+| 3 | [epoch_ns](#ext_epoch_ns) | 12 bytes | Epoch time in nanoseconds (int64 + uint32) |
+| 4 | [date](#ext_date) | 4 bytes | Calendar date (year, month, day) |
+| 5 | [time_s](#ext_time_s) | 4 bytes | Time of day in seconds |
+| 6 | [datetime_us](#ext_datetime_us) | 8 bytes | Date and time in microseconds since epoch |
+| 7 | [timedelta_us](#ext_timedelta_us) | 8 bytes | Time duration in microseconds |
+| 8 | [complex64](#ext_complex64) | 8 bytes | Complex number (single precision) |
+| 9 | [complex128](#ext_complex128) | 16 bytes | Complex number (double precision) |
+| 10 | [uuid](#ext_uuid) | 16 bytes | Universally Unique Identifier (RFC 4122) |
+| 11–255 | Reserved | — | Reserved for future specification |
+
+---
+
+#### <a name="ext_epoch_s"/>epoch_s (Type ID: 1)
+
+Represents an instantaneous point in time as seconds since the Unix epoch 
+(1970-01-01 00:00:00 UTC).
+
+#### Payload Format (4 bytes)
+
+```
+    seconds (uint32)
+║──────┬──────┬──────┬──────║
+0      1      2      3      4
+```
+
+- **seconds**: Unsigned 32-bit integer, Little-Endian
+- Range: 1970-01-01 00:00:00 to 2106-02-07 06:28:15 UTC
+- Precision: 1 second
+
+##### Example
+
+Timestamp for 2024-01-15 10:30:00 UTC (epoch = 1705315800):
+```
+[E][U][1][U][4][0x58][0x8D][0xA2][0x65]
+```
+
+---
+
+#### <a name="ext_epoch_us"/>epoch_us (Type ID: 2)
+
+Represents an instantaneous point in time as microseconds since the Unix epoch 
+(1970-01-01 00:00:00 UTC). Compatible with Python's `datetime.timestamp() * 1e6`.
+
+#### Payload Format (8 bytes)
+
+```
+                    microseconds (int64)
+║──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────║
+0      1      2      3      4      5      6      7      8
+```
+
+- **microseconds**: Signed 64-bit integer, Little-Endian
+- Positive values: dates after 1970-01-01 00:00:00 UTC
+- Negative values: dates before 1970-01-01 00:00:00 UTC
+- Range: approximately ±292,471 years from epoch
+- Precision: 1 microsecond
+
+##### Conversion
+```
+epoch_us = unix_timestamp_seconds * 1_000_000 + microseconds
+```
+
+##### Example
+
+Timestamp for 2024-01-15 10:30:00.123456 UTC (epoch_us = 1705315800123456):
+```
+[E][U][2][U][8][0x40][0x15][0xE3][0xED][0xED][0x0C][0x06][0x00]
+```
+
+---
+
+#### <a name="ext_epoch_ns"/>epoch_ns (Type ID: 3)
+
+Represents an instantaneous point in time with nanosecond precision, stored as 
+seconds plus nanoseconds since the Unix epoch. Compatible with NumPy's `datetime64[ns]`.
+
+##### Payload Format (12 bytes)
+
+```
+            seconds (int64)              nanoseconds (uint32)
+║────┬────┬────┬────┬────┬────┬────┬────╫────┬────┬────┬────║
+0    1    2    3    4    5    6    7    8    9    10   11   12
+```
+
+- **seconds**: Signed 64-bit integer (bytes 0–7), Little-Endian
+  - Signed to support dates before 1970
+  - Range: approximately ±292 billion years
+- **nanoseconds**: Unsigned 32-bit integer (bytes 8–11), Little-Endian
+  - Range: [0, 999999999]
+  - Sub-second component, always non-negative
+- Precision: 1 nanosecond
+
+#### Example
+
+Timestamp for 2024-01-15 10:30:00.123456789 UTC:
+- Seconds: 1705315800
+- Nanoseconds: 123456789
+```
+[E][U][3][U][12][0x78][0x8D][0xA2][0x65][0x00][0x00][0x00][0x00][0x15][0xCD][0x5B][0x07]
+```
+
+---
+
+#### <a name="ext_date"/>date (Type ID: 4)
+
+Represents a calendar date without time-of-day information.
+
+##### Payload Format (4 bytes)
+
+```
+   year (int16)    month   day
+║──────┬──────╫──────╫──────║
+0      1      2      3      4
+```
+
+- **year**: Signed 16-bit integer (bytes 0–1), Little-Endian
+  - Range: -32768 to 32767
+- **month**: Unsigned 8-bit integer (byte 2)
+  - Range: [1, 12]
+- **day**: Unsigned 8-bit integer (byte 3)
+  - Range: [1, 31]
+- Uses proleptic Gregorian calendar
+
+##### Example
+
+Date for 2024-01-15:
+- Year: 2024 (0x07E8)
+- Month: 1
+- Day: 15
+```
+[E][U][4][U][4][0xE8][0x07][0x01][0x0F]
+```
+
+---
+
+#### <a name="ext_time_s"/>time_s (Type ID: 5)
+
+Represents a time of day with second precision, without date information.
+
+##### Payload Format (4 bytes)
+
+```
+ hour   min    sec    (rsv)
+║──────╫──────╫──────╫──────║
+0      1      2      3      4
+```
+
+- **hour**: Unsigned 8-bit integer (byte 0), range [0, 23]
+- **minute**: Unsigned 8-bit integer (byte 1), range [0, 59]
+- **second**: Unsigned 8-bit integer (byte 2), range [0, 60] (60 for leap second)
+- **reserved**: Byte 3, set to 0
+
+##### Example
+
+Time for 10:30:45:
+```
+[E][U][5][U][4][0x0A][0x1E][0x2D][0x00]
+```
+
+---
+
+#### <a name="ext_datetime_us"/>datetime_us (Type ID: 6)
+
+Represents a date and time as microseconds since the Unix epoch. This is 
+functionally identical to `epoch_us` (Type ID: 2) but semantically emphasizes 
+the datetime interpretation.
+
+##### Payload Format (8 bytes)
+
+```
+                    microseconds (int64)
+║──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────║
+0      1      2      3      4      5      6      7      8
+```
+
+- **microseconds**: Signed 64-bit integer, Little-Endian
+- Range: approximately ±292,471 years from epoch
+- Precision: 1 microsecond
+
+##### Example
+
+Datetime for 2024-01-15 10:30:00.123456 UTC:
+```
+[E][U][6][U][8][0x40][0x15][0xE3][0xED][0xED][0x0C][0x06][0x00]
+```
+
+---
+
+#### <a name="ext_timedelta_us"/>timedelta_us (Type ID: 7)
+
+Represents a time duration in microseconds. Compatible with Python's 
+`timedelta.total_seconds() * 1e6`.
+
+##### Payload Format (8 bytes)
+
+```
+                    microseconds (int64)
+║──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────║
+0      1      2      3      4      5      6      7      8
+```
+
+- **microseconds**: Signed 64-bit integer, Little-Endian
+- Positive values: forward duration
+- Negative values: backward duration
+- Range: approximately ±292,471 years
+- Precision: 1 microsecond
+
+##### Conversion
+```
+total_seconds = timedelta_us / 1_000_000
+days = timedelta_us // 86_400_000_000
+```
+
+##### Example
+
+Duration of 5 days, 3 hours, 30 minutes, 15.5 seconds (= 444615500000 μs):
+```
+[E][U][7][U][8][0x60][0xAC][0x86][0x6E][0x67][0x00][0x00][0x00]
+```
+
+---
+
+#### <a name="ext_complex64"/>complex64 (Type ID: 8)
+
+Represents a complex number with single-precision (32-bit) floating-point 
+components. Compatible with NumPy's `complex64` dtype.
+
+##### Payload Format (8 bytes)
+
+```
+      real (float32)              imaginary (float32)
+║──────┬──────┬──────┬──────╫──────┬──────┬──────┬──────║
+0      1      2      3      4      5      6      7      8
+```
+
+- **real**: 32-bit float (bytes 0–3), Little-Endian, IEEE 754
+- **imaginary**: 32-bit float (bytes 4–7), Little-Endian, IEEE 754
+
+##### Mathematical Notation
+
+A complex number `z = a + bi` is stored as `[a][b]`.
+
+##### Example
+
+Complex number `3.0 + 4.0i`:
+```
+[E][U][8][U][8][0x00][0x00][0x40][0x40][0x00][0x00][0x80][0x40]
+```
+
+---
+
+#### <a name="ext_complex128"/>complex128 (Type ID: 9)
+
+Represents a complex number with double-precision (64-bit) floating-point 
+components. Compatible with NumPy's `complex128` dtype and Python's `complex`.
+
+##### Payload Format (16 bytes)
+
+```
+            real (float64)                       imaginary (float64)
+║────┬────┬────┬────┬────┬────┬────┬────╫────┬────┬────┬────┬────┬────┬────┬────║
+0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
+```
+
+- **real**: 64-bit float (bytes 0–7), Little-Endian, IEEE 754
+- **imaginary**: 64-bit float (bytes 8–15), Little-Endian, IEEE 754
+
+##### Example
+
+Complex number `3.0 + 4.0i`:
+```
+[E][U][9][U][16][0x00][0x00][0x00][0x00][0x00][0x00][0x08][0x40]
+                [0x00][0x00][0x00][0x00][0x00][0x00][0x10][0x40]
+```
+
+---
+
+#### <a name="ext_uuid"/>uuid (Type ID: 10)
+
+Represents a 128-bit Universally Unique Identifier as defined in RFC 4122.
+
+##### Payload Format (16 bytes)
+
+```
+    time_low        time_mid  time_hi  clk_hi clk_lo        node
+║────┬────┬────┬────╫────┬────╫────┬────╫────╫────╫────┬────┬────┬────┬────┬────║
+0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16
+```
+
+- **time_low**: bytes 0–3, Big-Endian
+- **time_mid**: bytes 4–5, Big-Endian
+- **time_hi_and_version**: bytes 6–7, Big-Endian
+- **clock_seq_hi_and_reserved**: byte 8
+- **clock_seq_low**: byte 9
+- **node**: bytes 10–15
+
+The 16 bytes are stored in standard UUID byte order (network byte order / big-endian) 
+as per RFC 4122. This is an exception to BJData's Little-Endian convention.
+
+##### UUID Versions
+
+The format supports all UUID versions (1, 4, 5, 7, etc.) as defined by RFC 4122 
+and RFC 9562.
+
+##### Example
+
+UUID `550e8400-e29b-41d4-a716-446655440000`:
+```
+[E][U][10][U][16][0x55][0x0e][0x84][0x00][0xe2][0x9b][0x41][0xd4]
+                 [0xa7][0x16][0x44][0x66][0x55][0x44][0x00][0x00]
+```
+
+---
+
+### Implementation Notes
+
+#### Handling Unknown Extension Types
+
+When a parser encounters an extension type ID it does not recognize:
+
+1. **Reserved range (0–255)**: The parser should preserve the extension as 
+   opaque binary data to enable round-trip serialization. It may optionally 
+   issue a warning.
+
+2. **Application range (256+)**: The parser should either:
+   - Pass the extension to an application-provided handler, or
+   - Preserve it as opaque binary data, or
+   - Raise an error (configurable behavior)
+
+#### Type Summary by Payload Size
+
+| Payload Size | Type IDs |
+|--------------|----------|
+| 4 bytes | epoch_s (1), date (4), time_s (5) |
+| 8 bytes | epoch_us (2), datetime_us (6), timedelta_us (7), complex64 (8) |
+| 12 bytes | epoch_ns (3) |
+| 16 bytes | complex128 (9), uuid (10) |
+
+#### Extension Data Endianness
+
+All multi-byte numeric values in extension payloads are stored in **Little-Endian** 
+order, consistent with the rest of the BJData specification, with the exception of 
+UUID which follows RFC 4122 (network byte order / big-endian).
 
 
 Recommended File Specifiers
