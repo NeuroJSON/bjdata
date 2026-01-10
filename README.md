@@ -20,11 +20,12 @@ of this specification was derived from the documentation included in the
 repository (Commit 5ce1fe7). **The BJData format is no longer backward compatible with UBJSON.**
 
 Libraries that support this specification include
-- Python: **pybj** (PIP:  https://pypi.org/project/bjdata/, Github: https://github.com/NeuroJSON/pybj)
-- MATLAB/Octave: **JSONLab** (Debian/Ubuntu/Fedora: `sudo apt-get install octave-jsonlab`, Github: https://github.com/NeuroJSON/jsonlab)
-- C: **ubj** (Github: https://github.com/NeuroJSON/ubj)
+- Python: **pybj** (PIP:  https://pypi.org/project/bjdata/, GitHub: https://github.com/NeuroJSON/pybj)
+- MATLAB/Octave: **JSONLab** (Debian/Ubuntu/Fedora: `sudo apt-get install octave-jsonlab`, GitHub: https://github.com/NeuroJSON/jsonlab)
+- C: **ubj** (GitHub: https://github.com/NeuroJSON/ubj)
 - C++: **JSON for Modern C++** (v3.11.0 or later) (https://github.com/nlohmann/json/)
-- JavaScript: **bjd** (npm: https://www.npmjs.com/package/bjd, Github: https://github.com/NeuroJSON/js-bjdata)
+- JavaScript: **bjd** (npm: https://www.npmjs.com/package/bjd, GitHub: https://github.com/NeuroJSON/js-bjdata)
+- Dart: **bjdata** (pub.dev: https://pub.dev/packages/bjdata, GitHub: https://github.com/nebkat/dart-bjdata)
 
 **Acknowledgement**: This specification was developed as part of the NeuroJSON project
 (http://neurojson.org), with funding support from the US National Institute of Health (NIH) under

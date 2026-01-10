@@ -76,6 +76,8 @@ www
 ndarray
 neuroimaging
 parsers
+dev
+nebkat
 SoA
 toolchain
 NumPy
