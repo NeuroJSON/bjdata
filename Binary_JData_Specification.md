@@ -691,8 +691,8 @@ dict-string   = '[' '$' 'S' '#' count 1*(string-value)   // dictionary-based str
 offset-string = '[' '$' int-type ']'       // offset-table-based variable string
 highprec-spec = fixed-highprec | dict-highprec | offset-highprec
 fixed-highprec= 'H' int-type length        // fixed-size high-precision number
-dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) // dictionary-based high-prec
-offset-highprec = '[' '$' int-type ']'     // offset-table-based variable high-prec (same as string)
+dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) // dictionary-based high-precision
+offset-highprec = '[' '$' int-type ']'     // offset-table-based variable high-precision (same as string)
 nested-schema = '{' 1*(field-def) '}'
 array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element types
 ```
@@ -1141,7 +1141,7 @@ Total: header + 39 (records) + 16 (offset table) + 32 (strings) = header + 87 by
 | `S <int> <len>` | fixed string | `len` bytes | No length prefix in payload |
 | `H <int> <len>` | fixed high-precision | `len` bytes | No length prefix in payload |
 | `[$S#<n>...` | dictionary string | 1-8 bytes | Index into embedded dictionary |
-| `[$H#<n>...` | dictionary high-prec | 1-8 bytes | Index into embedded dictionary |
+| `[$H#<n>...` | dictionary high-precision | 1-8 bytes | Index into embedded dictionary |
 | `[$<type>]` | offset-based string/H | sizeof(type) | Offset table + buffer appended |
 | `{...}` | nested object | sum of fields | All fields must be supported types |
 | `[...]` | fixed array | sum of elements | Explicit element types listed |
@@ -1390,7 +1390,7 @@ the datetime interpretation.
 
 ##### Example
 
-DateTime for 2024-01-15 10:30:00.123456 UTC:
+An extension datetime record for 2024-01-15 10:30:00.123456 UTC:
 ```
 [E][U][6][U][8][0x40][0x15][0xE3][0xED][0xED][0x0C][0x06][0x00]
 ```
@@ -1505,7 +1505,7 @@ Represents a 128-bit Universally Unique Identifier as defined in RFC 4122.
 - **clock_seq_low**: byte 9
 - **node**: bytes 10–15
 
-The 16 bytes are stored in standard UUID byte order (network byte order / big-endian) 
+The 16 bytes are stored in standard UUID byte order (network byte order / Big-Endian) 
 as per RFC 4122. This is an exception to BJData's Little-Endian convention.
 
 ##### UUID Versions
@@ -1551,7 +1551,7 @@ When a parser encounters an extension type ID it does not recognize:
 
 All multi-byte numeric values in extension payloads are stored in **Little-Endian** 
 order, consistent with the rest of the BJData specification, with the exception of 
-UUID which follows RFC 4122 (network byte order / big-endian).
+UUID which follows RFC 4122 (network byte order / Big-Endian).
 
 
 Recommended File Specifiers
