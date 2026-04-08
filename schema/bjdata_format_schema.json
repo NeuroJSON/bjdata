@@ -39,6 +39,9 @@
           "$ref": "#/definitions/BJDataByte"
         },
         {
+          "$ref": "#/definitions/BJDataExtension"
+        },
+        {
           "$ref": "#/definitions/BJDataString"
         },
         {
@@ -302,7 +305,40 @@
       ],
       "minItems": 2,
       "maxItems": 2,
-      "description": "BJData byte [B][value] - unsigned byte"
+      "description": "BJData byte [B][value] - unsigned byte, semantically distinct from uint8"
+    },
+    "BJDataExtension": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["E"],
+          "description": "Extension marker"
+        },
+        {
+          "type": "string",
+          "enum": ["i", "U", "I", "u", "l", "m", "L", "M"],
+          "description": "Type-ID integer marker"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Type-ID value: 0-255 reserved by spec, 256+ application-defined"
+        },
+        {
+          "type": "string",
+          "enum": ["i", "U", "I", "u", "l", "m", "L", "M"],
+          "description": "Payload byte-length integer marker"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Payload byte-length in bytes"
+        }
+      ],
+      "minItems": 5,
+      "maxItems": 6,
+      "description": "BJData extension type [E][id_type][id_value][len_type][len_value][payload] - reserved type IDs 0-255 have fixed payload sizes; IDs 256+ are application-defined"
     },
     "BJDataString": {
       "type": "array",
@@ -327,11 +363,99 @@
       "maxItems": 4,
       "description": "BJData string [S][length_type][length][utf8_string]"
     },
+    "BJDataDimArray": {
+      "type": "array",
+      "description": "1D integer array specifying N-dimensional array dimensions; each element is a non-negative integer",
+      "oneOf": [
+        {
+          "description": "Non-optimized dimension array: [[[dim1_type][dim1]...[]]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            }
+          ],
+          "additionalItems": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["i", "U", "I", "u", "l", "m", "L", "M", "]"]
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ]
+          },
+          "minItems": 1
+        },
+        {
+          "description": "Optimized dimension array: [[$][int_type][#][ndim_type][ndim][d1 d2 ...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        }
+      ]
+    },
+    "BJDataSoASchema": {
+      "type": "array",
+      "description": "SoA payload-less schema object: [{][field_name type_marker ...][}] - field names followed by type markers only, no data values. Permitted type markers: U i u I l m L M h d D C B T Z S H and nested {}/[] for nested objects and fixed arrays.",
+      "items": [
+        {
+          "type": "string",
+          "enum": ["{"]
+        }
+      ],
+      "additionalItems": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer",
+            "minimum": 0
+          }
+        ]
+      },
+      "minItems": 2
+    },
     "BJDataArray": {
       "type": "array",
       "oneOf": [
         {
-          "description": "Non-optimized array: [elements...]",
+          "description": "Non-optimized array: [[[elements...][]]",
           "items": [
             {
               "type": "string",
@@ -344,7 +468,7 @@
           "minItems": 1
         },
         {
-          "description": "Array with count: [#][count_type][count_value][elements...]",
+          "description": "Array with count only: [[[#][count_type][count_value][elements...]",
           "items": [
             {
               "type": "string",
@@ -369,7 +493,7 @@
           "minItems": 4
         },
         {
-          "description": "Optimized array: [$][type][#][count_type][count_value][data...]",
+          "description": "Optimized 1D array (strongly-typed): [[$][type][#][count_type][count][data...]",
           "items": [
             {
               "type": "string",
@@ -402,6 +526,108 @@
           ],
           "minItems": 7,
           "maxItems": 7
+        },
+        {
+          "description": "Optimized ND array, row-major: [[$][type][#][[dims...][data...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M", "h", "d", "D", "C", "B"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "$ref": "#/definitions/BJDataDimArray"
+            },
+            {
+              "type": "array",
+              "description": "Flattened N-dimensional data in row-major order (type markers omitted)"
+            }
+          ],
+          "minItems": 6,
+          "maxItems": 6
+        },
+        {
+          "description": "Optimized ND array, column-major: [[$][type][#][[[dims...]][data...]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M", "h", "d", "D", "C", "B"]
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "array",
+              "description": "Single-element array wrapping the dimension array (column-major indicator)",
+              "items": [
+                {
+                  "$ref": "#/definitions/BJDataDimArray"
+                }
+              ],
+              "minItems": 1,
+              "maxItems": 1
+            },
+            {
+              "type": "array",
+              "description": "Flattened N-dimensional data in column-major order (type markers omitted)"
+            }
+          ],
+          "minItems": 6,
+          "maxItems": 6
+        },
+        {
+          "description": "SoA row-major (array of records): [[$][{schema}][#][count_type][count][payload]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["["]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "$ref": "#/definitions/BJDataSoASchema"
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "description": "Packed interleaved record payload; record size determined by schema"
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
         }
       ]
     },
@@ -409,7 +635,7 @@
       "type": "array",
       "oneOf": [
         {
-          "description": "Non-optimized object: {name-value pairs...}",
+          "description": "Non-optimized object: [{][name-value pairs...][}]",
           "items": [
             {
               "type": "string",
@@ -422,7 +648,7 @@
           "minItems": 1
         },
         {
-          "description": "Object with count: {#][count_type][count_value][name-value pairs...]",
+          "description": "Object with count: [{][#][count_type][count_value][name-value pairs...]",
           "items": [
             {
               "type": "string",
@@ -447,7 +673,7 @@
           "minItems": 4
         },
         {
-          "description": "Optimized object: {[$][type][#][count_type][count_value][name-value pairs...]",
+          "description": "Optimized object (strongly-typed): [{][$][type][#][count_type][count][name-value pairs...]",
           "items": [
             {
               "type": "string",
@@ -476,6 +702,40 @@
             {
               "type": "array",
               "description": "Alternating name-value pairs with uniform value type"
+            }
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        },
+        {
+          "description": "SoA column-major (object of arrays): [{][$][{schema}][#][count_type][count][payload]",
+          "items": [
+            {
+              "type": "string",
+              "enum": ["{"]
+            },
+            {
+              "type": "string",
+              "enum": ["$"]
+            },
+            {
+              "$ref": "#/definitions/BJDataSoASchema"
+            },
+            {
+              "type": "string",
+              "enum": ["#"]
+            },
+            {
+              "type": "string",
+              "enum": ["i", "U", "I", "u", "l", "m", "L", "M"]
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "array",
+              "description": "Packed columnar payload; all values of each field stored contiguously"
             }
           ],
           "minItems": 7,

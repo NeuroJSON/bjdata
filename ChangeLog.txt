@@ -2,6 +2,27 @@
 
 Major updates are marked with a "*"
 
+
+== BJData Spec Draft-4, FangQ <q.fang (a) neu.edu> ==
+
+ 2026-01-10 [7e9ccd4] Merge pull request #23 from nebkat/lib/dart
+ 2026-01-10 [2c85e13] Merge branch 'master' into lib/dart
+ 2026-01-10 [c4ca869] [doc] highlight uniformity of data in ND packed array and SoA payload
+ 2026-01-10 [edf9d2d] [ci] fix additional spellchecker errors
+ 2026-01-10 [874e662] [ci] fix spellcheck errors
+ 2026-01-10 [b68625a] Update .wordlist.txt
+ 2026-01-10 [2492c0a]*[feat] add support for extension data type `E` marker
+ 2026-01-10 [7486ab8] [doc] update introduction, before adding Extension type
+ 2026-01-05 [c2ac37e] [feat] extension to support variable length strings in SoA
+ 2026-01-04 [3da7097] Update .wordlist.txt
+ 2026-01-04 [044497b] [typo] fix typos, fix TOC
+ 2026-01-03 [71c3668]*[Feat] initial draft of structure-of-arrays using object schema
+ 2025-12-02 [b82ef0d] Bump actions/checkout from 5 to 6
+ 2025-10-05 [55ab6da] [lib] Add Dart parser
+ 2025-08-24 [797b314]*[schema] add json schema for bjdata binary json format
+ 2025-03-23 [54a8db7] [lib] update all parser submodules
+ 2025-03-23 [f937ad4] [doc] update README links
+
 == BJData Spec Draft-3, FangQ <q.fang (a) neu.edu> ==
 
  2025-02-22 [14b23ac] Update README.md

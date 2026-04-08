@@ -3,9 +3,9 @@ Binary JData: A portable interchange format for complex binary data
 
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 1 (Draft 4-preview)
+- **Version**: 1 (Draft 4)
 - **URL**: https://neurojson.org/bjdata/
-- **Status**: Under development
+- **Status**: Stable
 - **Development**: https://github.com/NeuroJSON/bjdata
 - **Acknowledgement**: This project is supported by US National Institute of Health (NIH)
   grant [U24-NS124027 (NeuroJSON)](https://neurojson.org)
@@ -17,10 +17,10 @@ in diverse applications. The BJData specification is the binary counterpart
 to the JSON format, both of which are used to serialize complex data structures
 supported by the JData specification (https://neurojson.org/jdata). The BJData spec is 
 derived and extended from the Universal Binary JSON (UBJSON, https://ubjson.org) 
-specification (Draft 12). It adds supports for N-dimensional packed arrays and 
+specification (Draft 12). It adds support for N-dimensional packed arrays and 
 extended binary data types.
 
-## Table of Content
+## Table of Contents
 
 - [Introduction](#introduction)
 - [License](#license)
@@ -35,7 +35,7 @@ extended binary data types.
     - [Row- and column-major SoA](#row-major_column-major)
     - [Nested containers in schema](#nested_container_in_schema)
     - [N-dimensional SoA](#nd_soa)
-    - [SoA example](#nd_soa)
+    - [SoA example](#soa_example)
     - [Permitted type markers in SoA schema](#schema_marker_table)
   - [Extension](#value_extension)
     - [Reserved Extension Types (0–255)](#reserved-extension-types)
@@ -46,7 +46,7 @@ extended binary data types.
 Introduction
 ------------------------------
 
-The Javascript Object Notation (JSON) format is ubiquitously used in today's 
+The JavaScript Object Notation (JSON) format is ubiquitously used in today's 
 web and native applications. JSON offers numerous advantages, including 
 simplicity, human- and machine-readability, and versatility, with a large 
 toolchain ecosystem ranging from numerous parsers to highly efficient 
@@ -204,7 +204,7 @@ In BJData (using block-notation):
 
 ---
 ### <a name="value_noop"/>No-Op
-There is no equivalent to the `no-op` value in the original JSON specification. When 
+There is no equivalent to the `no-op` value in the original JSON specification. During
 decoding, No-Op values should be skipped.
 
 The intended usage of the `no-op` value is as a valueless signal between a 
@@ -243,13 +243,13 @@ minimum/maximum of values (inclusive) for each integer type are as follows:
 Type | Signed | Minimum | Maximum
 ---|---|---|---
 int8 | Yes | -128 | 127
-uint8 | Yes | 0 | 255
-int16 | No | -32,768 | 32,767
-uint16| Yes | 0 | 65,535
-int32 | No | -2,147,483,648 | 2,147,483,647
-uint32| Yes | 0 | 4,294,967,295
-int64 | No | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807
-uint64| Yes | 0 | 18,446,744,073,709,551,615
+uint8 | No | 0 | 255
+int16 | Yes | -32,768 | 32,767
+uint16| No | 0 | 65,535
+int32 | Yes | -2,147,483,648 | 2,147,483,647
+uint32| No | 0 | 4,294,967,295
+int64 | Yes | -9,223,372,036,854,775,808 | 9,223,372,036,854,775,807
+uint64| No | 0 | 18,446,744,073,709,551,615
 float16/half | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-2008_revision) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-2008_revision)
 float32/single | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
 float64/double | Yes | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985) | See [IEEE 754 Spec](https://en.wikipedia.org/wiki/IEEE_754-1985)
@@ -267,29 +267,29 @@ All integer types (`uint8`, `int8`, `uint16`, `int16`, `uint32`, `int32`, `uint6
 integers are written in Big-Endian order).
 
 #### Float
-All float types (`half`, `single`, `double` are written in **Little-Endian order** 
-(this is different from UBJSON which does not specify the Endianness of floats).
+All float types (`half`, `single`, `double`) are written in **Little-Endian order** 
+(this is different from UBJSON, which does not specify the endianness of floats).
 
 - `float16` or half-precision values are written in [IEEE 754 half precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-2008_revision), which has the following 
 structure:
   - Bit 15 (1 bit) - sign
   - Bit 14-10 (5 bits) - exponent
-  - Bit 9-0 (10 bits) - fraction (significant)
+  - Bit 9-0 (10 bits) - fraction (significand)
 
 - `float32` or single-precision values are written in [IEEE 754 single precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 31 (1 bit) - sign
   - Bit 30-23 (8 bits) - exponent
-  - Bit 22-0 (23 bits) - fraction (significant)
+  - Bit 22-0 (23 bits) - fraction (significand)
 
 - `float64` or double-precision values are written in [IEEE 754 double precision floating point 
 format](https://en.wikipedia.org/wiki/IEEE_754-1985), which has the following 
 structure:
   - Bit 63 (1 bit) - sign
   - Bit 62-52 (11 bits) - exponent
-  - Bit 51-0 (52 bits) - fraction (significant)
+  - Bit 51-0 (52 bits) - fraction (significand)
 
 
 #### High-Precision
@@ -346,7 +346,7 @@ Char values in JSON:
 ```json
 {
     "rolecode": "a",
-    "delim": ";",
+    "delim": ";"
 }
 ```
 
@@ -360,11 +360,11 @@ BJData (using block-notation):
 
 ---
 ### <a name="value_byte"/>Byte
-The `byte` type in BJData is functionally identical to the `uint8` type, 
-but semantically is meant to represent a byte and not a numeric value. In
-particular, when used as the strong type of an array container it provides
-a hint to the parser that an optimized data storage format may be used as
-opposed to a generic array of integers.
+The `byte` type in BJData is functionally identical to the `uint8` type
+but is semantically intended to represent a byte rather than a numeric value.
+In particular, when used as the element type of a strongly-typed array container,
+it signals to the parser that an optimized binary storage format may be used
+instead of a generic array of integers.
 
 See also [optimized format](#container_optimized) below.
 
@@ -372,24 +372,23 @@ See also [optimized format](#container_optimized) below.
 Byte values in JSON:
 ```json
 {
-    "binary": [222, 173, 190, 239]
-    "val": 123,
+    "binary": [222, 173, 190, 239],
+    "val": 123
 }
 ```
 
 BJData (using block-notation):
 ```
 [{]
-    [i][6][binary] [[] [$][B] [#][i][4] [222][173][190][239]
+    [i][6][binary][[] [$][B] [#][i][4] [222][173][190][239]
     [i][3][val][B][123]
 [}]
 ```
 
 ---
 ### <a name="value_string"/>String
-The `string` type in BJData is equivalent to the `string` type from the JSON 
-specification apart from the fact that BJData string value **requires** UTF-8 
-encoding.
+The `string` type in BJData is equivalent to the JSON `string` type, except that
+BJData strings **must** use UTF-8 encoding.
 
 #### Example
 String values in JSON:
@@ -487,20 +486,20 @@ array or object) are considered to be of that singular _type_ and, as a result,
 _type_ markers are omitted for each value within the container. This can be 
 thought of as providing the ability to create a strongly-typed container in BJData.
 
-A major different between BJData and UBJSON is that the _type_ in a BJData
-strongly-typed container is limited to **non-zero-fixed-length data types**, therefore,
-only integers (`i,U,I,u,l,m,L,M`), floating-point numbers (`h,d,D`), char (`C`) and byte (`B`)
-are qualified. All zero-length types (`T,F,Z,N`), variable-length types(`S, H`)
+A major difference between BJData and UBJSON is that the _type_ marker in a BJData
+strongly-typed container is restricted to **fixed-length data types**: only integers
+(`i,U,I,u,l,m,L,M`), floating-point numbers (`h,d,D`), char (`C`), and byte (`B`)
+are permitted. All zero-length types (`T,F,Z,N`), variable-length types (`S, H`),
 and container types (`[,{`) shall not be used in an optimized _type_ header.
-This restriction is set to reduce the security risks due to potentials of
-buffer-overflow attacks using [zero-length markers](https://github.com/nlohmann/json/issues/2793),
-hampered readability and diminished benefit using variable/container
-types in an optimized format.
+This restriction reduces security risks from potential buffer-overflow attacks
+via [zero-length markers](https://github.com/nlohmann/json/issues/2793), and
+avoids the reduced readability and diminished efficiency that variable-length or
+container types would bring in an optimized format.
 
 The requirements for _type_ are
 
 - If a _type_ is specified, it **must** be one of `i,U,I,u,l,m,L,M,h,d,D,C,B`.
-- If a _type_ is specified, it **must** be done so before a _count_.
+- If a _type_ is specified, it **must** be specified before a _count_.
 - If a _type_ is specified, a _count_ **must** be specified as well. (Otherwise 
 it is impossible to tell when a container is ending, e.g. did you just parse 
 *]* or the `int8` value of 93?)
@@ -512,11 +511,11 @@ it is impossible to tell when a container is ending, e.g. did you just parse
 
 ---
 ### Count - *\#*
-When a _count_ is followed by a single non-negative integer record, i.e. one of
-`i,U,I,u,l,m,L,M`, it specifies the total child element count. This allows the 
-parser to pre-size any internal construct used for parsing, verify that the 
-promised number of child values were found, and avoid scanning for any terminating 
-bytes while parsing. 
+When a _count_ is followed by a single non-negative integer value, i.e., one of
+`i,U,I,u,l,m,L,M`, it specifies the total child element count. This allows the
+parser to pre-size any internal construct used for parsing, verify that the
+promised number of child values were found, and avoid scanning for terminating
+bytes while parsing.
 
 - A _count_ can be specified without a _type_.
 
@@ -538,9 +537,9 @@ When both _type_ and _count_ are specified and the _count_ marker `#` is followe
 by `[`, the parser should expect the following sequence to be a 1-D `array` with 
 zero or more (`Ndim`) integer elements (`Nx, Ny, Nz, ...`). This specifies an 
 `Ndim`-dimensional array of uniform type specified by the _type_ marker after `$`. 
-The array data are serialized in the **row-major format**.
+The array data is serialized in **row-major** order.
 
-For example, the below two block sequences both represent an `Nx*Ny*Nz*...` array of
+For example, the following two block sequences both represent an `Nx*Ny*Nz*...` array of
 uniform numeric type:
 
 ```
@@ -550,15 +549,15 @@ uniform numeric type:
 ```
 where `Ndim` is the number of dimensions, and `Nx`, `Ny`, and `Nz` ... are 
 all non-negative numbers specifying the dimensions of the N-dimensional array.
-`Nz/Ny/Nz/Ndim` types must be one of the integer types (`i,U,I,u,l,m,L,M`). 
+`Nx/Ny/Nz/Ndim` types must be one of the integer types (`i,U,I,u,l,m,L,M`). 
 The binary data of the N-dimensional array is then serialized into a 1-D vector
-in the **row-major** element order (similar to C, C++, Javascript or Python) .
+in **row-major** element order (similar to C, C++, JavaScript, or Python).
 
-To store an N-dimensional array that is serialized using the **column-major** element
-order (as used in MATLAB and FORTRAN), the _count_ marker `#` should be followed by
-an array of a single element, which must be a 1-D array of integer type as the
-dimensional vector above. Either of the arrays can be in optimized or non-optimized
-form. For example, either of the following 
+To store an N-dimensional array in **column-major** order (as used in MATLAB and
+FORTRAN), the _count_ marker `#` should be followed by a single-element array
+wrapping the 1-D integer dimension array described above. Either the outer or
+inner array may be in optimized or non-optimized form. For example, either of
+the following
 
 ```
 [[] [$] [type] [#] [[] [[] [$] [Nx type] [#] [Ndim type] [Ndim] [Nx Ny Nz ...] []]  [a11 a21 a31 ... a21 a22 ...]
@@ -596,7 +595,7 @@ or **column-major** serialized form as
 ```
 
 ### Additional rules
-- A _count_ **must** be >= 0.
+- A _count_ **must** be non-negative (>= 0).
 - A _count_ can be specified alone.
 - If a _count_ is specified, the container **must not** specify an end-marker.
 - A container that specifies a _count_ **must** contain the specified number of 
@@ -652,10 +651,10 @@ Optimized with both _type_ and _count_
 
 ## <a name="structure-of-arrays"/>Structure-of-Arrays (SoA)
 
-BJData supports **Structure-of-Arrays (SoA)**, as a special type of optimized container 
-to store packed object data in either column-major or row-major orders. The payload
-in an SoA record are packed in the column or row order with chunks of binary data of
-identical byte length. This **uniform columnar payload structure** makes it efficient
+BJData supports **Structure-of-Arrays (SoA)**, a special optimized container type
+for storing packed object data in either column-major or row-major order. The payload
+in an SoA record is packed in column or row order with chunks of binary data of
+identical byte length. This **uniform payload structure** makes it efficient
 to parse and store.
 
 ### <a name="soa_syntax"/>SoA Container Syntax
@@ -797,7 +796,7 @@ specifying the byte-offset type stored in the payload.
 {
   i2 id m                    // uint32 (4 bytes in payload)
   i4 name [$l]               // variable string with int32 offsets
-  i5 value d                 // float64 (8 bytes in payload)
+  i5 value D                 // float64 (8 bytes in payload)
 }
 ```
 
@@ -844,13 +843,13 @@ fields, their offset tables and string buffers are appended in schema field orde
 
 ### Boolean type (`T`)
 
-In normal BJData, `T` and `F` are zero-length value markers:
+In standard BJData, `T` and `F` are zero-length markers:
 ```
 T                        // true (no payload)
 F                        // false (no payload)
 ```
 
-In a **schema context**, `T` means "boolean type" - a 1-byte field:
+In a **schema context**, `T` denotes "boolean type" — a 1-byte field:
 ```
 { i6 active T }          // "active" is a boolean field
 ```
@@ -862,12 +861,12 @@ In the payload, each boolean value is stored as a single byte: `T` (0x54) for tr
 
 ### Null type (`Z`)
 
-In a **schema context**, `Z` means "null/placeholder field" with **zero bytes** in payload:
+In a **schema context**, `Z` denotes "null/placeholder field" with **zero bytes** in the payload:
 ```
 { 
   i2 id m                // uint32 (4 bytes)
   i8 reserved Z          // placeholder (0 bytes)
-  i4 data d              // float64 (8 bytes)
+  i4 data D              // float64 (8 bytes)
 }
 ```
 
@@ -884,8 +883,8 @@ Using existing container markers:
 
 | Syntax | Layout | Description |
 |--------|--------|-------------|
-| `[$` | **Row-major (Interleaved)** | Array of records - each complete record stored sequentially |
-| `{$` | **Column-major (Columnar)** | Object of arrays - all values of each field stored together |
+| `[$` | **Row-major (Interleaved)** | Array of records — each complete record stored sequentially |
+| `{$` | **Column-major (Columnar)** | Object of arrays — all values of each field stored together |
 
 #### Row-Major: `[$`
 
@@ -897,7 +896,7 @@ Payload order: `<record₁><record₂><record₃>...`
 
 **Example:** 3 particles with `{x:float64, y:float64, id:uint32, active:bool}`
 ```
-[ $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
+[ $ { i1 x D  i1 y D  i2 id m  i6 active T } # i 3
   <x₁:8><y₁:8><id₁:4><active₁:1>  <x₂:8><y₂:8><id₂:4><active₂:1>  ...
 ```
 Payload: 3 × 21 bytes = 63 bytes, interleaved
@@ -912,14 +911,14 @@ Payload order: `<all field₁ values><all field₂ values>...`
 
 **Example:** Same 3 particles
 ```
-{ $ { i1 x d  i1 y d  i2 id m  i6 active T } # i 3
+{ $ { i1 x D  i1 y D  i2 id m  i6 active T } # i 3
   <x₁:8><x₂:8><x₃:8>  <y₁:8><y₂:8><y₃:8>  <id₁:4><id₂:4><id₃:4>  <T><F><T>
 ```
 Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
-**Why this design:**
-- `[` = "ordered sequence" → sequence of records (row-major)
-- `{` = "named fields" → fields as separate arrays (column-major)
+**Design rationale:**
+- `[` denotes an "ordered sequence" → sequence of records (row-major)
+- `{` denotes "named fields" → fields as separate arrays (column-major)
 - No new markers needed
 
 ---
@@ -932,9 +931,9 @@ Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 {
   i4 name S i 32           // 32-byte fixed string
   i8 position {            // nested object (24 bytes total)
-    i1 x d
-    i1 y d  
-    i1 z d
+    i1 x D
+    i1 y D  
+    i1 z D
   }
   i6 active T              // boolean (1 byte)
   i5 flags U               // uint8 (1 byte)
@@ -950,7 +949,7 @@ Use array syntax with repeated type markers:
 ```
 {
   i2 id m                  // uint32 (4 bytes)
-  i3 pos [d d d]           // array of 3 float64 (24 bytes)
+  i3 pos [D D D]           // array of 3 float64 (24 bytes)
   i5 color [U U U U]       // array of 4 uint8 (4 bytes)
   i5 flags [T T T T]       // array of 4 booleans (4 bytes)
 }
@@ -961,7 +960,7 @@ Record size: 4 + 24 + 4 + 4 = 36 bytes
 For longer arrays, repeat the type marker:
 ```
 {
-  i4 data [d d d d d d d d d d]   // array of 10 float64 (80 bytes)
+  i4 data [D D D D D D D D D D]   // array of 10 float64 (80 bytes)
 }
 ```
 
@@ -969,7 +968,7 @@ For longer arrays, repeat the type marker:
 
 ```
 {
-  i6 vertex [d d d]        // position: 3 float64 (24 bytes)
+  i6 vertex [D D D]        // position: 3 float64 (24 bytes)
   i6 normal [h h h]        // normal: 3 float16 (6 bytes)
   i5 color [U U U U]       // RGBA: 4 uint8 (4 bytes)
   i7 visible T             // visibility: boolean (1 byte)
@@ -991,7 +990,7 @@ Both `[$` and `{$` support ND dimensions:
 
 **Example:** 4×3 grid of particles (row-major)
 ```
-[ $ { i1 x d  i1 y d  i6 active T } # [ i 4  i 3 ]
+[ $ { i1 x D  i1 y D  i6 active T } # [ i 4  i 3 ]
   <12 records in row-major order>
 ```
 
@@ -1030,19 +1029,19 @@ Byte  Hex   Meaning
 14    69    i
 15    01    1
 16    78    "x"
-17    64    d (float64)
+17    44    D (float64)
 18    69    i
 19    01    1
 20    79    "y"
-21    64    d (float64)
+21    44    D (float64)
 22    7D    } (nested object end)
 23    69    i
 24    03    3
 25-27 76616C "val"
 28    5B    [ (array start)
-29    64    d (float64)
-30    64    d
-31    64    d
+29    44    D (float64)
+30    44    D
+31    44    D
 32    5D    ] (array end)
 33    69    i
 34    02    2
@@ -1159,7 +1158,7 @@ without modifying the core format.
 
 ### Format
 
-An extension value is encoded using the marker `E` followed by two integers and 
+An extension value is encoded with the marker `E`, followed by two integers and
 a binary payload:
 
 ```
@@ -1185,9 +1184,8 @@ where:
 Applications can assign type IDs 256 and above for custom data types. The meaning 
 of these IDs is determined by the application and should be documented separately.
 
-Reserved extension types (0–255) are limited to **fixed-byte-length** records to 
-ensure predictable parsing and efficient storage. Each reserved type ID corresponds 
-to exactly one fixed payload size.
+Reserved extension types (0–255) use **fixed-length** payloads to ensure predictable
+parsing and efficient storage.
 
 #### Example (block notation)
 
@@ -1200,10 +1198,10 @@ An extension with type ID 10 (UUID) containing 16 bytes of data:
 
 ### <a name="reserved-extension-types"/>Reserved Extension Types (0–255)
 
-The following extension type IDs are reserved and defined by this specification. 
-Each reserved type has exactly **one fixed payload size** for unambiguous parsing.
-Parsers that do not recognize a reserved type ID should treat the extension as 
-opaque binary data and preserve it for round-trip serialization.
+The following extension type IDs are reserved and defined by this specification.
+Each reserved type has exactly **one fixed payload size** to enable unambiguous
+parsing. Parsers encountering unrecognized reserved type IDs should preserve the
+extension as opaque binary data for round-trip serialization.
 
 #### Type Summary
 
@@ -1229,7 +1227,7 @@ opaque binary data and preserve it for round-trip serialization.
 Represents an instantaneous point in time as seconds since the Unix epoch 
 (1970-01-01 00:00:00 UTC).
 
-#### Payload Format (4 bytes)
+##### Payload Format (4 bytes)
 
 ```
     seconds (uint32)
@@ -1255,7 +1253,7 @@ Timestamp for 2024-01-15 10:30:00 UTC (epoch = 1705315800):
 Represents an instantaneous point in time as microseconds since the Unix epoch 
 (1970-01-01 00:00:00 UTC). Compatible with Python's `datetime.timestamp() * 1e6`.
 
-#### Payload Format (8 bytes)
+##### Payload Format (8 bytes)
 
 ```
                     microseconds (int64)
@@ -1266,7 +1264,7 @@ Represents an instantaneous point in time as microseconds since the Unix epoch
 - **microseconds**: Signed 64-bit integer, Little-Endian
 - Positive values: dates after 1970-01-01 00:00:00 UTC
 - Negative values: dates before 1970-01-01 00:00:00 UTC
-- Range: approximately ±292,471 years from epoch
+- Range: approximately ±292,471 years from the epoch
 - Precision: 1 microsecond
 
 ##### Conversion
@@ -1304,7 +1302,7 @@ seconds plus nanoseconds since the Unix epoch. Compatible with NumPy's `datetime
   - Sub-second component, always non-negative
 - Precision: 1 nanosecond
 
-#### Example
+##### Example
 
 Timestamp for 2024-01-15 10:30:00.123456789 UTC:
 - Seconds: 1705315800
@@ -1361,7 +1359,7 @@ Represents a time of day with second precision, without date information.
 
 - **hour**: Unsigned 8-bit integer (byte 0), range [0, 23]
 - **minute**: Unsigned 8-bit integer (byte 1), range [0, 59]
-- **second**: Unsigned 8-bit integer (byte 2), range [0, 60] (60 for leap second)
+- **second**: Unsigned 8-bit integer (byte 2), range [0, 60] inclusive (60 allows for leap seconds)
 - **reserved**: Byte 3, set to 0
 
 ##### Example
@@ -1388,7 +1386,7 @@ the datetime interpretation.
 ```
 
 - **microseconds**: Signed 64-bit integer, Little-Endian
-- Range: approximately ±292,471 years from epoch
+- Range: approximately ±292,471 years from the epoch
 - Precision: 1 microsecond
 
 ##### Example
@@ -1452,7 +1450,7 @@ components. Compatible with NumPy's `complex64` data type.
 
 ##### Mathematical Notation
 
-A complex number `z = a + bi` is stored as `[a][b]`.
+A complex number `z = a + bi` is stored as `[a][b]`, where `a` is the real part and `b` is the imaginary part.
 
 ##### Example
 
@@ -1508,8 +1506,8 @@ Represents a 128-bit Universally Unique Identifier as defined in RFC 4122.
 - **clock_seq_low**: byte 9
 - **node**: bytes 10–15
 
-The 16 bytes are stored in standard UUID byte order (network byte order / Big-Endian) 
-as per RFC 4122. This is an exception to BJData's Little-Endian convention.
+The 16 bytes are stored in standard UUID byte order (network byte order / Big-Endian)
+as specified by RFC 4122. This is an exception to BJData's Little-Endian convention.
 
 ##### UUID Versions
 
@@ -1552,16 +1550,16 @@ When a parser encounters an extension type ID it does not recognize:
 
 #### Extension Data Endianness
 
-All multi-byte numeric values in extension payloads are stored in **Little-Endian** 
-order, consistent with the rest of the BJData specification, with the exception of 
-UUID which follows RFC 4122 (network byte order / Big-Endian).
+All multi-byte numeric values in extension payloads are stored in **Little-Endian**
+order, consistent with the rest of the BJData specification, except for UUID values,
+which follow RFC 4122 (network byte order / Big-Endian).
 
 
 Recommended File Specifiers
 ------------------------------
 
-For Binary JData files, the recommended file suffix is **`".bjd"`**.
-The MIME type for a Binary JData document is **`"application/jdata-binary"`**
+For Binary JData files, the recommended file suffix is **`.bjd`**.
+The MIME type for a Binary JData document is **`application/jdata-binary`**.
 
 Acknowledgement
 ------------------------------
@@ -1569,7 +1567,7 @@ Acknowledgement
 The BJData spec is derived from the Universal Binary JSON (UBJSON, https://ubjson.org) 
 specification (Draft 12) developed by Riyad Kalla and other UBJSON contributors.
 
-The initial version of this MarkDown-formatted specification was derived from the 
+The initial version of this Markdown-formatted specification was derived from the 
 documentation included in the [Py-UBJSON](https://github.com/Iotic-Labs/py-ubjson/blob/dev-contrib/UBJSON-Specification.md) 
 repository (Commit 5ce1fe7).
 
