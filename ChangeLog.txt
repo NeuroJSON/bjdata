@@ -5,6 +5,8 @@ Major updates are marked with a "*"
 
 == BJData Spec Draft-4, FangQ <q.fang (a) neu.edu> ==
 
+ 2026-04-08 [0244bf4]*[feat] add njv and njv.py to rapidly display bjd files in Perl/Python
+ 2026-04-08 [04703ec] [release] update language and schema for Draft-4
  2026-01-10 [7e9ccd4] Merge pull request #23 from nebkat/lib/dart
  2026-01-10 [2c85e13] Merge branch 'master' into lib/dart
  2026-01-10 [c4ca869] [doc] highlight uniformity of data in ND packed array and SoA payload
