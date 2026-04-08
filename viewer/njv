@@ -1,0 +1,434 @@
+#!/usr/bin/env perl
+# njv - BJData/Binary JSON viewer with SOA support
+# Usage: njv file.bjd [--max-data 100] [--max-str 200] [--debug] [--big-endian]
+use strict;
+use warnings;
+use Getopt::Long;
+use Encode qw(decode);
+
+my $JSON;
+
+BEGIN {
+    eval { require JSON::XS; $JSON = JSON::XS->new } or do { require JSON::PP; $JSON = JSON::PP->new }
+}
+binmode( STDOUT, ':utf8' );
+
+my ( $max_data, $max_str, $debug, $big_endian ) = ( 100, 200, 0, 0 );
+GetOptions( 'max-data=i' => \$max_data, 'max-str=i' => \$max_str, debug => \$debug, 'big-endian|be' => \$big_endian );
+die "Usage: njv <file> [--max-data N] [--max-str N] [--debug] [--big-endian]\n" unless @ARGV;
+
+my $filename = shift;
+open my $fh, '<:raw', $filename or die "Can't open $filename: $!";
+my $buffer = do { local $/; <$fh> };
+close $fh;
+print "# File: $filename (" . length($buffer) . " bytes)\n\n";
+
+my $endian = $big_endian ? '>' : '<';
+my %M      = (
+    i => [ 1, "c" ],
+    U => [ 1, "C" ],
+    I => [ 2, "s$endian" ],
+    u => [ 2, "S$endian" ],
+    l => [ 4, "l$endian" ],
+    m => [ 4, "L$endian" ],
+    L => [ 8, "q$endian" ],
+    M => [ 8, "Q$endian" ],
+    h => [ 2, "S$endian" ],
+    d => [ 4, "f$endian" ],
+    D => [ 8, "d$endian" ],
+    C => [ 1, "C" ],
+    B => [ 1, "C" ]
+);
+my %INT_TYPES   = map { $_ => 1 } qw(i U I u l m L M);
+my %NUM_TYPES   = ( %INT_TYPES, map { $_ => 1 } qw(h d D) );
+my %FIXED_TYPES = ( %NUM_TYPES, C => 1, B => 1 );
+my ( $pos, $depth ) = ( 0, 0 );
+
+sub remaining { length($buffer) - $pos }
+sub peek      { $pos < length($buffer) ? substr( $buffer, $pos, 1 ) : '' }
+
+sub read_bytes {
+    die "EOF at $pos\n" if $pos + $_[0] > length($buffer);
+    my $r = substr( $buffer, $pos, $_[0] );
+    $pos += $_[0];
+    $r;
+}
+sub log_debug { print "# " . sprintf( "%6d", $pos ) . ": " . ( "  " x $depth ) . "$_[0]\n" if $debug }
+
+sub safe_decode {
+    my $s = eval { decode( 'UTF-8', $_[0], Encode::FB_CROAK ) };
+    defined $s ? $s : decode( 'ISO-8859-1', $_[0] );
+}
+
+sub half_to_float {
+    my ( $sign, $exp, $mant ) = ( ( $_[0] >> 15 ) & 1, ( $_[0] >> 10 ) & 0x1f, $_[0] & 0x3ff );
+    return
+        $exp == 0 && $mant == 0 ? 0.0
+      : $exp == 31 ? ( $mant == 0 ? ( $sign ? "-" : "" ) . "Inf" : "NaN" )
+      : ( 1 - 2 * $sign ) * ( $exp ? ( 1 + $mant / 1024 ) * 2**( $exp - 15 ) : $mant / 1024 * 2**-14 );
+}
+
+sub read_int { my $m = shift // read_bytes(1); unpack( $M{$m}[1], read_bytes( $M{$m}[0] ) ) }
+
+sub read_num {
+    my $v = unpack( $M{ $_[0] }[1], $_[1] // read_bytes( $M{ $_[0] }[0] ) );
+    $_[0] eq 'h' ? half_to_float($v) : $v;
+}
+sub read_str { my $n = read_int(); $n ? safe_decode( read_bytes($n) ) : "" }
+
+sub read_dims {
+    my ( $elem_type, $count );
+    if ( peek eq '$' ) { read_bytes(1); $elem_type = read_bytes(1) }
+    if ( peek eq '#' ) { read_bytes(1); $count     = read_int() }
+    my @dims;
+    if ( $count && $elem_type ) {
+        @dims = map { read_num($elem_type) } 1 .. $count;
+    }
+    elsif ($count) {
+        @dims = map { read_int() } 1 .. $count;
+    }
+    else { push @dims, read_value() while peek ne ']'; read_bytes(1) }
+    log_debug("dims: @dims");
+    return @dims;
+}
+
+sub read_typed {
+    my ( $marker, $count ) = @_;
+    return [ map { read_bytes(1) eq 'T' ? \1 : \0 } 1 .. $count ] if $marker =~ /^[TF]$/;
+    my ( $size, $fmt ) = @{ $M{$marker} };
+    return "<truncated>" if $count * $size > remaining();
+    if ( $count > $max_data ) {
+        my @preview = map { read_num($marker) } 1 .. 8;
+        read_bytes( ( $count - 8 ) * $size );
+        return "<$count values: [" . join( ",", @preview[ 0 .. 3 ] ) . "]...>";
+    }
+    return [ map { read_num($marker) } 1 .. $count ];
+}
+
+sub read_schema_field {
+    my $marker = peek;
+    if ( $FIXED_TYPES{$marker} ) {
+        read_bytes(1);
+        return { type => 'fixed', bytes => $M{$marker}[0], fmt => $M{$marker}[1], marker => $marker };
+    }
+    if ( $marker =~ /^[TF]$/ ) { read_bytes(1); return { type => 'bool',   bytes => 1 } }
+    if ( $marker eq 'Z' )      { read_bytes(1); return { type => 'null',   bytes => 0 } }
+    if ( $marker =~ /^[SH]$/ ) { read_bytes(1); return { type => 'string', bytes => read_int(), enc => 'fixed' } }
+    if ( $marker eq '[' ) {
+        read_bytes(1);
+        if ( peek eq '$' ) {
+            read_bytes(1);
+            my $inner = read_bytes(1);
+            if ( $inner =~ /^[SH]$/ ) {
+                read_bytes(1);
+                my $n    = read_int();
+                my @dict = map { read_str() } 1 .. $n;
+                my ( $ib, $im ) = $n <= 255 ? ( 1, 'U' ) : $n <= 65535 ? ( 2, 'u' ) : ( 4, 'm' );
+                return { type => 'string', bytes => $ib, enc => 'dict', dict => \@dict, im => $im };
+            }
+            if ( $INT_TYPES{$inner} ) {
+                read_bytes(1);
+                return { type => 'string', bytes => $M{$inner}[0], enc => 'offset', im => $inner };
+            }
+        }
+        my ( @elems, $bytes );
+        while ( peek ne ']' ) {
+            my $em = read_bytes(1);
+            if ( $FIXED_TYPES{$em} ) {
+                push @elems, { type => 'fixed', bytes => $M{$em}[0], fmt => $M{$em}[1], marker => $em };
+                $bytes += $M{$em}[0];
+            } elsif ( $em =~ /^[TF]$/ ) {
+                push @elems, { type => 'bool', bytes => 1 };
+                $bytes += 1;
+            }
+        }
+        read_bytes(1);
+        return { type => 'array', bytes => $bytes, elems => \@elems };
+    }
+    if ( $marker eq '{' ) {
+        read_bytes(1);
+        my ( @fields, $bytes );
+        while ( peek ne '}' ) {
+            my $name = read_str();
+            my $f    = read_schema_field();
+            $f->{name} = $name;
+            push @fields, $f;
+            $bytes += $f->{bytes};
+        }
+        read_bytes(1);
+        return { type => 'struct', bytes => $bytes, fields => \@fields };
+    }
+    die "Unknown schema marker: $marker";
+}
+
+sub decode_field {
+    my ( $field, $payload, $offset, $rec_idx ) = @_;
+    $offset //= 0;
+    my $raw = substr( $payload, $offset, $field->{bytes} );
+
+    if ( $field->{type} eq 'fixed' ) {
+        my $val = read_num( $field->{marker}, $raw );
+        return $field->{marker} eq 'C' ? chr($val) : $val;
+    }
+    return substr( $raw, 0, 1 ) eq 'T' ? \1 : \0 if $field->{type} eq 'bool';
+    return undef                                 if $field->{type} eq 'null';
+    if ( $field->{type} eq 'string' ) {
+        if ( $field->{enc} eq 'fixed' ) { $raw =~ s/\0+$//; return safe_decode($raw) }
+        if ( $field->{enc} eq 'dict' )  { return $field->{dict}[ read_num( $field->{im}, $raw ) ] // '' }
+        if ( $field->{enc} eq 'offset' ) {
+            my $idx = read_num( $field->{im}, $raw );
+            my ( $s, $e ) = @{ $field->{offsets} }[ $idx, $idx + 1 ];
+            return $e > $s ? safe_decode( substr( $field->{strbuf}, $s, $e - $s ) ) : '';
+        }
+    }
+    if ( $field->{type} eq 'array' ) {
+        my ( @arr, $off );
+        for my $elem ( @{ $field->{elems} } ) {
+            push @arr, decode_field( $elem, $raw, $off, $rec_idx );
+            $off += $elem->{bytes};
+        }
+        return \@arr;
+    }
+    if ( $field->{type} eq 'struct' ) {
+        my ( %rec, @keys, $off );
+        for my $f ( @{ $field->{fields} } ) {
+            push @keys, $f->{name};
+            $rec{ $f->{name} } = decode_field( $f, $raw, $off, $rec_idx );
+            $off += $f->{bytes};
+        }
+        return { _keys => \@keys, _data => \%rec };
+    }
+    return undef;
+}
+
+sub read_soa {
+    my ( $layout, $brace_consumed ) = @_;
+    log_debug("SOA $layout-major");
+    $depth++;
+    read_bytes(1) unless $brace_consumed;
+    my ( @fields, $rec_bytes );
+    while ( peek ne '}' ) {
+        my $name = read_str();
+        my $f    = read_schema_field();
+        $f->{name} = $name;
+        push @fields, $f;
+        $rec_bytes += $f->{bytes};
+    }
+    read_bytes(1);
+    read_bytes(1) while peek eq 'N';
+    die "Expected # after SOA schema at $pos" unless read_bytes(1) eq '#';
+
+    my ( $count, @dims );
+    if ( peek eq '[' ) {
+        read_bytes(1);
+        my $col_major_nd = peek eq '[';
+        read_bytes(1) if $col_major_nd;
+        @dims = read_dims();
+        read_bytes(1) if $col_major_nd && peek eq ']';
+        $count = 1;
+        $count *= $_ for @dims;
+    } else {
+        $count = read_int();
+        @dims  = ($count);
+    }
+
+    my $payload = read_bytes( $rec_bytes * $count );
+    for my $f ( grep { ( $_->{enc} // '' ) eq 'offset' } @fields ) {
+        $f->{offsets} = [ map { read_num( $f->{im} ) } 0 .. $count ];
+        $f->{strbuf}  = $f->{offsets}[-1] > 0 ? read_bytes( $f->{offsets}[-1] ) : '';
+    }
+
+    my @records;
+    my $decode_count = $count > $max_data ? 4 : $count;
+    for my $i ( 0 .. $decode_count - 1 ) {
+        my ( %rec, @keys );
+        my $col_off = 0;
+        for my $f (@fields) {
+            push @keys, $f->{name};
+            my $off = $layout eq 'column' ? $col_off + $i * $f->{bytes} : $i * $rec_bytes + $col_off;
+            $rec{ $f->{name} } = decode_field( $f, $payload, $off, $i );
+            $col_off += $layout eq 'column' ? $f->{bytes} * $count : $f->{bytes};
+        }
+        push @records, { _keys => \@keys, _data => \%rec };
+    }
+    $depth--;
+
+    if ( $count > $max_data ) {
+        return
+            "<SOA $layout dims=[@dims]: "
+          . join( ", ", map { fmt_val($_) } @records )
+          . ", ... ("
+          . ( $count - 4 )
+          . " more)>";
+    }
+    return { _soa => $layout, _dims => \@dims, _records => \@records };
+}
+
+sub read_array {
+    $depth++;
+    my ( $elem_type, $count );
+    if ( peek eq '$' ) {
+        read_bytes(1);
+        $elem_type = read_bytes(1);
+        log_debug("type: $elem_type");
+        if ( $elem_type eq '{' ) { $depth--; return read_soa( 'row', 1 ) }
+    }
+    if ( peek eq '#' ) {
+        read_bytes(1);
+        if ( peek eq '[' ) {
+            read_bytes(1);
+            my $col = peek eq '[';
+            read_bytes(1) if $col;
+            my @dims = read_dims();
+            read_bytes(1) if $col && peek eq ']';
+            my $total = 1;
+            $total *= $_ for @dims;
+            my $size  = $M{$elem_type}[0];
+            my $order = $col ? "col" : "row";
+            $depth--;
+            return "<[@dims] $order: truncated>" if $total * $size > remaining();
+
+            if ( $total > $max_data ) {
+                my @preview = map { read_num($elem_type) } 1 .. 8;
+                read_bytes( ( $total - 8 ) * $size );
+                return "<[@dims] $order: [" . join( ",", @preview[ 0 .. 3 ] ) . "]...>";
+            }
+            return [ map { read_num($elem_type) } 1 .. $total ];
+        }
+        $count = read_int();
+        log_debug("count: $count");
+    }
+
+    my $result;
+    if ( defined $count && defined $elem_type ) {
+        $result = read_typed( $elem_type, $count );
+    } elsif ( defined $count ) {
+        $result = [ map { read_value() } 1 .. $count ];
+    } else {
+        $result = [];
+        push @$result, read_value() while peek ne ']';
+        read_bytes(1);
+    }
+    $depth--;
+    return $result;
+}
+
+sub read_object {
+    $depth++;
+    my ( $elem_type, $count );
+    if ( peek eq '$' ) {
+        read_bytes(1);
+        $elem_type = read_bytes(1);
+        log_debug("type: $elem_type");
+        if ( $elem_type eq '{' ) { $depth--; return read_soa( 'column', 1 ) }
+    }
+    if ( peek eq '#' ) {
+        read_bytes(1);
+        $count = read_int();
+        log_debug("count: $count");
+    }
+
+    my ( @keys, %data );
+    my $read_kv = sub {
+        my $key = safe_decode( read_bytes( read_int() ) );
+        log_debug("key: $key");
+        push @keys, $key;
+        $data{$key} = defined $elem_type ? read_num($elem_type) : read_value();
+    };
+    if ( defined $count ) { $read_kv->() for 1 .. $count }
+    else                  { $read_kv->() while peek ne '}'; read_bytes(1) }
+    $depth--;
+    return { _keys => \@keys, _data => \%data };
+}
+
+sub read_value {
+    my $marker = read_bytes(1);
+    log_debug( "marker: " . ( $marker ge ' ' && $marker lt "\x7f" ? $marker : sprintf( "%02x", ord($marker) ) ) );
+    return undef                               if $marker eq 'Z';
+    return read_value()                        if $marker eq 'N';
+    return \1                                  if $marker eq 'T';
+    return \0                                  if $marker eq 'F';
+    return read_num($marker)                   if $NUM_TYPES{$marker};
+    return chr( unpack( 'C', read_bytes(1) ) ) if $marker eq 'C';
+    return unpack( 'C', read_bytes(1) )        if $marker eq 'B';
+    return read_str()                          if $marker eq 'S';
+    return "HighPrec(" . read_str() . ")"      if $marker eq 'H';
+    return read_extension()                    if $marker eq 'E';
+    if ( $marker eq '[' ) { log_debug("array [");  return read_array() }
+    if ( $marker eq '{' ) { log_debug("object {"); return read_object() }
+    die "Unknown marker '$marker' at " . ( $pos - 1 ) . "\n";
+}
+
+sub fmt_val {
+    my ( $val, $ind ) = @_;
+    $ind //= 0;
+    my $pad = "  " x $ind;
+    return "null" unless defined $val;
+    return $$val ? "true" : "false" if ref($val) eq 'SCALAR';
+    return $val                     if !ref($val) && $val =~ /^<.*>$/s;
+    return $val                     if !ref($val) && $val =~ /^-?[\d.eE+\-]+$/ && $val ne '';
+    if ( !ref($val) ) {
+        my $s =
+          length($val) > $max_str ? substr( $val, 0, $max_str / 2 ) . "..." . substr( $val, -$max_str / 2 ) : $val;
+        $s =~ s/"/\\"/g;
+        return "\"$s\"";
+    }
+    if ( ref($val) eq 'ARRAY' ) {
+        return "[]" unless @$val;
+        return "<array[" . @$val . "]: [" . join( ", ", map { fmt_val($_) } @$val[ 0 .. 3 ] ) . "]...>"
+          if @$val > $max_data;
+        my $short = "[" . join( ", ", map { fmt_val($_) } @$val ) . "]";
+        return $short if @$val <= 10 && length($short) < 80 && !grep { ref($_) && ref($_) ne 'SCALAR' } @$val;
+        return "[\n" . join( ",\n", map { "$pad  " . fmt_val( $_, $ind + 1 ) } @$val ) . "\n$pad]";
+    }
+    if ( ref($val) eq 'HASH' ) {
+        if ( $val->{_soa} ) {
+            my $recs = $val->{_records};
+            my $hdr  = "<SOA $val->{_soa} dims=[@{$val->{_dims}}]>";
+            if ( @$recs > $max_data ) {
+                return
+                    "$hdr [\n"
+                  . join( ",\n", map { "$pad  " . fmt_val( $_, $ind + 1 ) } @$recs[ 0 .. 3 ] )
+                  . ",\n$pad  ...("
+                  . ( @$recs - 4 )
+                  . " more)\n$pad]";
+            }
+            return "$hdr [\n" . join( ",\n", map { "$pad  " . fmt_val( $_, $ind + 1 ) } @$recs ) . "\n$pad]";
+        }
+        my @keys = $val->{_keys} ? @{ $val->{_keys} } : sort keys %$val;
+        my $data = $val->{_data} // $val;
+        return "{}" unless @keys;
+        return "<object[" . @keys . "]>" if @keys > $max_data;
+        return "{\n" . join( ",\n", map { "$pad  \"$_\": " . fmt_val( $data->{$_}, $ind + 1 ) } @keys ) . "\n$pad}";
+    }
+    return "$val";
+}
+
+sub read_extension {
+    my $typeid  = read_int();
+    my $bytelen = read_int();
+    my $hex     = unpack( "H*", read_bytes($bytelen) );
+    "<ext:$typeid:$hex>";
+}
+
+# Try JSON first
+if ( length($buffer) >= 2 && substr( $buffer, 0, 1 ) =~ /^[\[\{]$/ && substr( $buffer, 1, 1 ) =~ /^[\s"0-9\-\[\{]$/ ) {
+    my $decoded = eval { $JSON->utf8->decode($buffer) };
+    if ($decoded) { print fmt_val($decoded), "\n"; exit 0 }
+}
+
+# Parse BJData
+eval {
+    print fmt_val( read_value() ), "\n";
+    print "\n# " . remaining() . " bytes remaining\n" if remaining() > 0;
+};
+if ($@) {
+    print "Error at $pos: $@\n";
+    my ( $start, $end ) = ( $pos > 32 ? $pos - 32 : 0, $pos + 64 < length($buffer) ? $pos + 64 : length($buffer) );
+    print "\nHex [$start:$end]:\n";
+    for ( my $o = $start ; $o < $end ; $o += 16 ) {
+        my $c = substr( $buffer, $o, $o + 16 < $end ? 16 : $end - $o );
+        printf "  %04d: %-32s  %s\n", $o, unpack( "H*", $c ), join '',
+          map { $_ >= 32 && $_ < 127 ? chr($_) : '.' } unpack( "C*", $c );
+    }
+}
