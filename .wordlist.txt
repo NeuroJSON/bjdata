@@ -93,3 +93,5 @@ timedelta
 uuid
 BJData's
 NumPy's
+endianness
+significand
