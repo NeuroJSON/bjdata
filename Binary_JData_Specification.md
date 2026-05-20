@@ -3,9 +3,9 @@ Binary JData: A portable interchange format for complex binary data
 
 - **Maintainer**: Qianqian Fang <q.fang at neu.edu>
 - **License**: Apache License, Version 2.0
-- **Version**: 1 (Draft 4)
+- **Version**: 1 (Draft 5.preview)
 - **URL**: https://neurojson.org/bjdata/
-- **Status**: Stable
+- **Status**: Under development, last stable relese is [Draft-4](https://neurojson.org/bjdata/draft4)
 - **Development**: https://github.com/NeuroJSON/bjdata
 - **Acknowledgement**: This project is supported by US National Institute of Health (NIH)
   grant [U24-NS124027 (NeuroJSON)](https://neurojson.org)
@@ -173,8 +173,8 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [float64/double](#value_numeric) | 9 bytes | *D* | No | Yes
 [high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
 [char](#value_char) | 2 bytes | *C* | No | Yes
-[byte](#value_byte) | 2 bytes | *B* | No | Yes
-[extension](#value_extension) | 1 byte + int num val + int num val + payload | *E* | Yes | Yes (if not empty)
+[byte](#value_byte)* | 2 bytes | *B* | No | Yes
+[extension](#value_extension)* | 1 byte + int num val + int num val + payload | *E* | Yes | Yes (if not empty)
 [string](#value_string) | 1 byte + int num val + string byte len | *S* | Yes | Yes (if not empty)
 [array](#container_array) | 2+ bytes | *\[* and *\]* | Optional | Yes (if not empty)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
