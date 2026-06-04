@@ -5,7 +5,7 @@ Binary JData: A portable interchange format for complex binary data
 - **License**: Apache License, Version 2.0
 - **Version**: 1 (Draft 5.preview)
 - **URL**: https://neurojson.org/bjdata/
-- **Status**: Under development, last stable relese is [Draft-4](https://neurojson.org/bjdata/draft4)
+- **Status**: Under development, last stable release is [Draft-4](https://neurojson.org/bjdata/draft4)
 - **Development**: https://github.com/NeuroJSON/bjdata
 - **Acknowledgement**: This project is supported by US National Institute of Health (NIH)
   grant [U24-NS124027 (NeuroJSON)](https://neurojson.org)
