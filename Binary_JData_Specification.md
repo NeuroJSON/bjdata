@@ -115,9 +115,8 @@ Each element in the tuple is defined as:
 - **type** - A 1-byte ASCII char (**_Marker_**) used to indicate the type of 
 the data following it.
 
-- **length** (_optional_) - A positive, integer numeric type (`uint8`, `int8`, 
-`uint16`, `int16`, `uint32`, `int32`, `uint64` or `int64`) specifying the length 
-of the following data payload.
+- **length** (_optional_) - An unsigned integer numeric type (`uint8`, `uint16`, 
+`uint32` or `uint64`) specifying the length of the following data payload.
 
 - **data** (_optional_) - A contiguous byte-stream containing serialized binary
 data representing the actual binary data for this type of value.
@@ -171,11 +170,11 @@ Type | Total size | ASCII Marker(s) | Length required | Data (payload)
 [float16/half](#value_numeric)* | 3 bytes | *h* | No | Yes
 [float32/single](#value_numeric) | 5 bytes | *d* | No | Yes
 [float64/double](#value_numeric) | 9 bytes | *D* | No | Yes
-[high-precision number](#value_numeric) | 1 byte + int num val + string byte len | *H* | Yes | Yes
+[high-precision number](#value_numeric) | 1 byte + uint num val + string byte len | *H* | Yes | Yes
 [char](#value_char) | 2 bytes | *C* | No | Yes
 [byte](#value_byte)* | 2 bytes | *B* | No | Yes
-[extension](#value_extension)* | 1 byte + int num val + int num val + payload | *E* | Yes | Yes (if not empty)
-[string](#value_string) | 1 byte + int num val + string byte len | *S* | Yes | Yes (if not empty)
+[extension](#value_extension)* | 1 byte + uint num val + uint num val + payload | *E* | Yes | Yes (if not empty)
+[string](#value_string) | 1 byte + uint num val + string byte len | *S* | Yes | Yes (if not empty)
 [array](#container_array) | 2+ bytes | *\[* and *\]* | Optional | Yes (if not empty)
 [object](#container_object) | 2+ bytes | *{* and *}* | Optional | Yes (if not empty)
 
@@ -198,7 +197,7 @@ In JSON:
 In BJData (using block-notation):
 ```
 [{]
-    [i][8][passcode][Z]
+    [U][8][passcode][Z]
 [}]
 ```
 
@@ -229,8 +228,8 @@ In JSON:
 In BJData (using block-notation):
 ```
 [{]
-    [i][10][authorized][T]
-    [i][8][verified][F]
+    [U][10][authorized][T]
+    [U][8][verified][F]
 [}]
 ```
 
@@ -319,18 +318,18 @@ Numeric values in JSON:
 In BJData (using block-notation):
 ```
 [{]
-    [i][4][int8][i][16]
-    [i][5][uint8][U][255]
-    [i][5][int16][I][32767]
-    [i][6][uint16][u][32768]
-    [i][5][int32][l][2147483647]
-    [i][5][int64][L][9223372036854775807]
-    [i][6][uint64][M][9223372036854775808]
-    [i][7][float32][d][3.14]
-    [i][7][float64][D][113243.7863123]
-    [i][5][huge1][H][i][22][3.14159265358979323846]
-    [i][5][huge2][H][i][10][-1.93+E190]
-    [i][5][huge3][H][U][200][719...]
+    [U][4][int8][i][16]
+    [U][5][uint8][U][255]
+    [U][5][int16][I][32767]
+    [U][6][uint16][u][32768]
+    [U][5][int32][l][2147483647]
+    [U][5][int64][L][9223372036854775807]
+    [U][6][uint64][M][9223372036854775808]
+    [U][7][float32][d][3.14]
+    [U][7][float64][D][113243.7863123]
+    [U][5][huge1][H][U][22][3.14159265358979323846]
+    [U][5][huge2][H][U][10][-1.93+E190]
+    [U][5][huge3][H][U][200][719...]
 [}]
 ```
 
@@ -353,8 +352,8 @@ Char values in JSON:
 BJData (using block-notation):
 ```
 [{]
-    [i][8][rolecode][C][a]
-    [i][5][delim][C][;]
+    [U][8][rolecode][C][a]
+    [U][5][delim][C][;]
 [}]
 ```
 
@@ -380,8 +379,8 @@ Byte values in JSON:
 BJData (using block-notation):
 ```
 [{]
-    [i][6][binary][[] [$][B] [#][i][4] [222][173][190][239]
-    [i][3][val][B][123]
+    [U][6][binary][[] [$][B] [#][U][4] [222][173][190][239]
+    [U][3][val][B][123]
 [}]
 ```
 
@@ -402,8 +401,8 @@ String values in JSON:
 BJData (using block-notation):
 ```
 [{]
-    [i][8][username][S][i][4][andy]
-    [i][9][imagedata][S][l][2097152][...huge string payload...]
+    [U][8][username][S][U][4][andy]
+    [U][9][imagedata][S][m][2097152][...huge string payload...]
 [}]
 ```
 
@@ -438,7 +437,7 @@ BJData (using block-notation):
     [F]
     [l][4782345193]
     [d][153.132]
-    [S][i][3][ham]
+    [S][U][3][ham]
 []]
 ```
 
@@ -449,6 +448,11 @@ specification. Since value names can only be strings, the *S* (string) marker
 **must not** be included since it is redundant.
 
 The child elements of an object are ordered and can be accessed by their names.
+
+A key length **must** use the smallest unsigned integer type that can represent
+it: `U` for 0-255, `u` for up to 65,535, `m` for up to 4,294,967,295, otherwise
+`M`. Every key therefore has exactly one encoded form, allowing a parser to
+pre-encode the keys it looks for and match them by comparing raw bytes.
 
 #### Example
 
@@ -467,11 +471,11 @@ Object in JSON:
 BJData (using block-notation):
 ```
 [{]
-    [i][4][post][{]
-        [i][2][id][I][1137]
-        [i][6][author][S][i][4][Andy]
-        [i][9][timestamp][L][1364482090592]
-        [i][4][body][S][i][43][The quick brown fox jumps over the lazy dog]
+    [U][4][post][{]
+        [U][2][id][I][1137]
+        [U][6][author][S][U][4][Andy]
+        [U][9][timestamp][L][1364482090592]
+        [U][4][body][S][U][43][The quick brown fox jumps over the lazy dog]
     [}]
 [}]
 ```
@@ -511,8 +515,8 @@ it is impossible to tell when a container is ending, e.g. did you just parse
 
 ---
 ### Count - *\#*
-When a _count_ is followed by a single non-negative integer value, i.e., one of
-`i,U,I,u,l,m,L,M`, it specifies the total child element count. This allows the
+When a _count_ is followed by a single unsigned integer value, i.e., one of
+`U,u,m,M`, it specifies the total child element count. This allows the
 parser to pre-size any internal construct used for parsing, verify that the
 promised number of child values were found, and avoid scanning for terminating
 bytes while parsing.
@@ -521,7 +525,7 @@ bytes while parsing.
 
 #### Example (count of 64):
 ```
-[#][i][64]
+[#][U][64]
 ```
 
 ### Optimized array
@@ -549,7 +553,7 @@ uniform numeric type:
 ```
 where `Ndim` is the number of dimensions, and `Nx`, `Ny`, and `Nz` ... are 
 all non-negative numbers specifying the dimensions of the N-dimensional array.
-`Nx/Ny/Nz/Ndim` types must be one of the integer types (`i,U,I,u,l,m,L,M`). 
+`Nx/Ny/Nz/Ndim` types must be one of the unsigned integer types (`U,u,m,M`). 
 The binary data of the N-dimensional array is then serialized into a 1-D vector
 in **row-major** element order (similar to C, C++, JavaScript, or Python).
 
@@ -610,7 +614,7 @@ _type_ markers for any contained value.
 ### Array Examples
 Optimized with _count_
 ```
-[[][#][i][5] // An array of 5 elements.
+[[][#][U][5] // An array of 5 elements.
     [d][29.97]
     [d][31.13]
     [d][67.0]
@@ -620,7 +624,7 @@ Optimized with _count_
 ```
 Optimized with both _type_ and _count_
 ```
-[[][$][d][#][i][5] // An array of 5 float32 elements.
+[[][$][d][#][U][5] // An array of 5 float32 elements.
     [29.97] // Value type is known, so type markers are omitted.
     [31.13]
     [67.0]
@@ -633,18 +637,18 @@ Optimized with both _type_ and _count_
 ### Object Examples
 Optimized with _count_
 ```
-[{][#][i][3] // An object of 3 name:value pairs.
-    [i][3][lat][d][29.976]
-    [i][4][long][d][31.131]
-    [i][3][alt][d][67.0]
+[{][#][U][3] // An object of 3 name:value pairs.
+    [U][3][lat][d][29.976]
+    [U][4][long][d][31.131]
+    [U][3][alt][d][67.0]
 // No end marker since a count was specified.
 ```
 Optimized with both _type_ and _count_
 ```
-[{][$][d][#][i][3] // An object of 3 name:float32-value pairs.
-    [i][3][lat][29.976] // Value type is known, so type markers are omitted.
-    [i][4][long][31.131]
-    [i][3][alt][67.0]
+[{][$][d][#][U][3] // An object of 3 name:float32-value pairs.
+    [U][3][lat][29.976] // Value type is known, so type markers are omitted.
+    [U][4][long][31.131]
+    [U][3][alt][67.0]
 // No end marker since a count was specified.
 ```
 
@@ -681,20 +685,21 @@ The schema is a **payload-less object**: keys followed by type markers only, no 
 ```
 schema        = '{' 1*(field-def) '}'
 field-def     = name type-spec
-name          = int-type length string-bytes
+name          = uint-type length string-bytes  // smallest type that fits
+uint-type     = 'U' | 'u' | 'm' | 'M'
 type-spec     = fixed-type | bool-type | null-type | string-spec | highprec-spec
               | nested-schema | array-spec
 fixed-type    = 'U' | 'i' | 'u' | 'I' | 'l' | 'm' | 'L' | 'M' | 'h' | 'd' | 'D' | 'C' | 'B'
 bool-type     = 'T'                        // boolean (1 byte: T or F in payload)
 null-type     = 'Z'                        // null (0 bytes in payload)
 string-spec   = fixed-string | dict-string | offset-string
-fixed-string  = 'S' int-type length        // fixed-size string
+fixed-string  = 'S' uint-type length       // fixed-size string
 dict-string   = '[' '$' 'S' '#' count 1*(string-value)   // dictionary-based string
-offset-string = '[' '$' int-type ']'       // offset-table-based variable string
+offset-string = '[' '$' uint-type ']'      // offset-table-based variable string
 highprec-spec = fixed-highprec | dict-highprec | offset-highprec
-fixed-highprec= 'H' int-type length        // fixed-size high-precision number
+fixed-highprec= 'H' uint-type length       // fixed-size high-precision number
 dict-highprec = '[' '$' 'H' '#' count 1*(highprec-value) // dictionary-based high-precision
-offset-highprec = '[' '$' int-type ']'     // offset-table-based variable high-precision (same as string)
+offset-highprec = '[' '$' uint-type ']'    // offset-table-based variable high-precision (same as string)
 nested-schema = '{' 1*(field-def) '}'
 array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element types
 ```
@@ -704,9 +709,9 @@ array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element 
 2. `T` in schema means "boolean type" - each value is 1 byte (`T` or `F` marker) in payload
 3. `Z` in schema means "null field" - no bytes in payload (placeholder/reserved field)
 4. Strings (`S`) and high-precision numbers (`H`) support three storage modes:
-   - **Fixed-length:** `S <int-type> <length>` or `H <int-type> <length>`
+   - **Fixed-length:** `S <uint-type> <length>` or `H <uint-type> <length>`
    - **Dictionary-based:** `[$S#<count><str1><str2>...` or `[$H#<count><val1><val2>...`
-   - **Offset-table-based:** `[$<int-type>]`
+   - **Offset-table-based:** `[$<uint-type>]`
 5. Nested objects `{...}` are allowed if all fields use supported types
 6. No optimized containers can be used inside the schema, except in the case of serving as
    dictionary/offset-table markers for variable-length strings, as described in #4 above
@@ -720,8 +725,8 @@ array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element 
 
 In a **schema context**, `S` and `H` followed by an integer define fixed-length strings or high-precision numbers:
 ```
-{ i4 name S i 16 }       // "name" is a 16-byte fixed string
-{ i5 value H i 32 }      // "value" is a 32-byte fixed high-precision number
+{ U4 name S U 16 }       // "name" is a 16-byte fixed string
+{ U5 value H U 32 }      // "value" is a 32-byte fixed high-precision number
 ```
 
 In the payload, each record contributes exactly the specified bytes - no length prefix. 
@@ -750,10 +755,10 @@ where each string/value is encoded as a standard BJData string or high-precision
 **Example schema:**
 ```
 {
-  i6 status [$S#i 3                    // dictionary with 3 string values
-    i 6 active                         // index 0: "active"
-    i 8 inactive                       // index 1: "inactive"  
-    i 7 pending                        // index 2: "pending"
+  U6 status [$S#U 3                    // dictionary with 3 string values
+    U 6 active                         // index 0: "active"
+    U 8 inactive                       // index 1: "inactive"  
+    U 7 pending                        // index 2: "pending"
 }
 ```
 
@@ -788,15 +793,15 @@ optimized type `[$<type>]`.
 [$<offset-type>]
 ```
 
-Where `<offset-type>` is an integer type (`i`, `U`, `I`, `u`, `l`, `m`, `L`, `M`) 
+Where `<offset-type>` is an unsigned integer type (`U`, `u`, `m`, `M`) 
 specifying the byte-offset type stored in the payload.
 
 **Example schema:**
 ```
 {
-  i2 id m                    // uint32 (4 bytes in payload)
-  i4 name [$l]               // variable string with int32 offsets
-  i5 value D                 // float64 (8 bytes in payload)
+  U2 id m                    // uint32 (4 bytes in payload)
+  U4 name [$m]               // variable string with uint32 offsets
+  U5 value D                 // float64 (8 bytes in payload)
 }
 ```
 
@@ -851,7 +856,7 @@ F                        // false (no payload)
 
 In a **schema context**, `T` denotes "boolean type" — a 1-byte field:
 ```
-{ i6 active T }          // "active" is a boolean field
+{ U6 active T }          // "active" is a boolean field
 ```
 
 In the payload, each boolean value is stored as a single byte: `T` (0x54) for true, 
@@ -864,9 +869,9 @@ In the payload, each boolean value is stored as a single byte: `T` (0x54) for tr
 In a **schema context**, `Z` denotes "null/placeholder field" with **zero bytes** in the payload:
 ```
 { 
-  i2 id m                // uint32 (4 bytes)
-  i8 reserved Z          // placeholder (0 bytes)
-  i4 data D              // float64 (8 bytes)
+  U2 id m                // uint32 (4 bytes)
+  U8 reserved Z          // placeholder (0 bytes)
+  U4 data D              // float64 (8 bytes)
 }
 ```
 
@@ -896,7 +901,7 @@ Payload order: `<record₁><record₂><record₃>...`
 
 **Example:** 3 particles with `{x:float64, y:float64, id:uint32, active:bool}`
 ```
-[ $ { i1 x D  i1 y D  i2 id m  i6 active T } # i 3
+[ $ { U1 x D  U1 y D  U2 id m  U6 active T } # U 3
   <x₁:8><y₁:8><id₁:4><active₁:1>  <x₂:8><y₂:8><id₂:4><active₂:1>  ...
 ```
 Payload: 3 × 21 bytes = 63 bytes, interleaved
@@ -911,7 +916,7 @@ Payload order: `<all field₁ values><all field₂ values>...`
 
 **Example:** Same 3 particles
 ```
-{ $ { i1 x D  i1 y D  i2 id m  i6 active T } # i 3
+{ $ { U1 x D  U1 y D  U2 id m  U6 active T } # U 3
   <x₁:8><x₂:8><x₃:8>  <y₁:8><y₂:8><y₃:8>  <id₁:4><id₂:4><id₃:4>  <T><F><T>
 ```
 Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
@@ -929,14 +934,14 @@ Payload: (3×8) + (3×8) + (3×4) + (3×1) = 63 bytes, columnar
 
 ```
 {
-  i4 name S i 32           // 32-byte fixed string
-  i8 position {            // nested object (24 bytes total)
-    i1 x D
-    i1 y D  
-    i1 z D
+  U4 name S U 32           // 32-byte fixed string
+  U8 position {            // nested object (24 bytes total)
+    U1 x D
+    U1 y D  
+    U1 z D
   }
-  i6 active T              // boolean (1 byte)
-  i5 flags U               // uint8 (1 byte)
+  U6 active T              // boolean (1 byte)
+  U5 flags U               // uint8 (1 byte)
 }
 ```
 
@@ -948,10 +953,10 @@ Use array syntax with repeated type markers:
 
 ```
 {
-  i2 id m                  // uint32 (4 bytes)
-  i3 pos [D D D]           // array of 3 float64 (24 bytes)
-  i5 color [U U U U]       // array of 4 uint8 (4 bytes)
-  i5 flags [T T T T]       // array of 4 booleans (4 bytes)
+  U2 id m                  // uint32 (4 bytes)
+  U3 pos [D D D]           // array of 3 float64 (24 bytes)
+  U5 color [U U U U]       // array of 4 uint8 (4 bytes)
+  U5 flags [T T T T]       // array of 4 booleans (4 bytes)
 }
 ```
 
@@ -960,7 +965,7 @@ Record size: 4 + 24 + 4 + 4 = 36 bytes
 For longer arrays, repeat the type marker:
 ```
 {
-  i4 data [D D D D D D D D D D]   // array of 10 float64 (80 bytes)
+  U4 data [D D D D D D D D D D]   // array of 10 float64 (80 bytes)
 }
 ```
 
@@ -968,10 +973,10 @@ For longer arrays, repeat the type marker:
 
 ```
 {
-  i6 vertex [D D D]        // position: 3 float64 (24 bytes)
-  i6 normal [h h h]        // normal: 3 float16 (6 bytes)
-  i5 color [U U U U]       // RGBA: 4 uint8 (4 bytes)
-  i7 visible T             // visibility: boolean (1 byte)
+  U6 vertex [D D D]        // position: 3 float64 (24 bytes)
+  U6 normal [h h h]        // normal: 3 float16 (6 bytes)
+  U5 color [U U U U]       // RGBA: 4 uint8 (4 bytes)
+  U7 visible T             // visibility: boolean (1 byte)
 }
 ```
 
@@ -990,7 +995,7 @@ Both `[$` and `{$` support ND dimensions:
 
 **Example:** 4×3 grid of particles (row-major)
 ```
-[ $ { i1 x D  i1 y D  i6 active T } # [ i 4  i 3 ]
+[ $ { U1 x D  U1 y D  U6 active T } # [ U 4  U 3 ]
   <12 records in row-major order>
 ```
 
@@ -1018,24 +1023,24 @@ Byte  Hex   Meaning
 0     5B    [ (array-style SoA = row-major)
 1     24    $
 2     7B    { (schema start)
-3     69    i (int8 key length)
+3     55    U (uint8 key length)
 4     02    2
 5-6   6964  "id"
 7     6D    m (uint32)
-8     69    i
+8     55    U
 9     03    3
 10-12 706F73 "pos"
 13    7B    { (nested object start)
-14    69    i
+14    55    U
 15    01    1
 16    78    "x"
 17    44    D (float64)
-18    69    i
+18    55    U
 19    01    1
 20    79    "y"
 21    44    D (float64)
 22    7D    } (nested object end)
-23    69    i
+23    55    U
 24    03    3
 25-27 76616C "val"
 28    5B    [ (array start)
@@ -1043,13 +1048,13 @@ Byte  Hex   Meaning
 30    44    D
 31    44    D
 32    5D    ] (array end)
-33    69    i
+33    55    U
 34    02    2
 35-36 6F6E  "on"
 37    54    T (boolean type)
 38    7D    } (schema end)
 39    23    #
-40    69    i
+40    55    U
 41    02    2 (count = 2)
 --- PAYLOAD (2 records × 45 bytes) ---
 42-45       id₁: uint32 = 1
@@ -1088,13 +1093,13 @@ Total: 42 (header) + 90 (payload) = 132 bytes
 **Schema (block notation):**
 ```
 [{]
-  [i][2][id][m]                        // uint32 (4 bytes)
-  [i][6][status][$][S][#][i][3]        // dictionary with 3 values
-    [i][6][active]                     // index 0
-    [i][8][inactive]                   // index 1
-    [i][7][pending]                    // index 2
-  [i][4][name][$][l][]]                // offset-based variable string (int32 offsets)
-  [i][4][code][S][i][4]                // fixed 4-byte string
+  [U][2][id][m]                        // uint32 (4 bytes)
+  [U][6][status][$][S][#][U][3]        // dictionary with 3 values
+    [U][6][active]                     // index 0
+    [U][8][inactive]                   // index 1
+    [U][7][pending]                    // index 2
+  [U][4][name][$][m][]]                // offset-based variable string (uint32 offsets)
+  [U][4][code][S][U][4]                // fixed 4-byte string
 [}]
 ```
 
@@ -1109,7 +1114,7 @@ Total: 42 (header) + 90 (payload) = 132 bytes
 │ Record 2: [id=2] [status_idx=2] [name_idx=1] [code="U002"]   │  13 bytes
 │ Record 3: [id=3] [status_idx=0] [name_idx=2] [code="U003"]   │  13 bytes
 ├──────────────────────────────────────────────────────────────┤
-│ Name Offset Table (4 × int32):                               │
+│ Name Offset Table (4 × uint32):                              │
 │   [0, 5, 8, 32]                                              │  16 bytes
 ├──────────────────────────────────────────────────────────────┤
 │ Name String Buffer:                                          │
@@ -1140,8 +1145,8 @@ Total: header + 39 (records) + 16 (offset table) + 32 (strings) = header + 87 by
 | `B` | byte | 1 byte | |
 | `T` | boolean | 1 byte | Payload: `T` or `F` marker |
 | `Z` | null/placeholder | 0 bytes | No payload |
-| `S <int> <len>` | fixed string | `len` bytes | No length prefix in payload |
-| `H <int> <len>` | fixed high-precision | `len` bytes | No length prefix in payload |
+| `S <uint> <len>` | fixed string | `len` bytes | No length prefix in payload |
+| `H <uint> <len>` | fixed high-precision | `len` bytes | No length prefix in payload |
 | `[$S#<n>...` | dictionary string | 1-8 bytes | Index into embedded dictionary |
 | `[$H#<n>...` | dictionary high-precision | 1-8 bytes | Index into embedded dictionary |
 | `[$<type>]` | offset-based string/H | sizeof(type) | Offset table + buffer appended |
@@ -1167,10 +1172,10 @@ a binary payload:
 
 where:
 - **E** (0x45) - The 1-byte ASCII marker indicating an extension type
-- **type-id** - An integer value (`i`, `U`, `I`, `u`, `l`, `m`, `L`, or `M`) 
-  specifying the extension type identifier
-- **byte-length** - An integer value (`i`, `U`, `I`, `u`, `l`, `m`, `L`, or `M`) 
-  specifying the length of the payload in bytes
+- **type-id** - An unsigned integer value (`U`, `u`, `m`, or `M`) specifying 
+  the extension type identifier
+- **byte-length** - An unsigned integer value (`U`, `u`, `m`, or `M`) specifying 
+  the length of the payload in bytes
 - **payload** - A contiguous byte-stream of the specified length containing the 
   extension data
 
