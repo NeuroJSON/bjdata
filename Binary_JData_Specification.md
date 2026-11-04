@@ -494,7 +494,9 @@ and container types (`[,{`) shall not be used in an optimized _type_ header.
 This restriction reduces security risks from potential buffer-overflow attacks
 via [zero-length markers](https://github.com/nlohmann/json/issues/2793), and
 avoids the reduced readability and diminished efficiency that variable-length or
-container types would bring in an optimized format.
+container types would bring in an optimized format. The same holds for a
+[Structure-of-Arrays](#structure-of-arrays) container: its schema shall describe
+records of at least one byte.
 
 The requirements for _type_ are
 
@@ -711,6 +713,10 @@ array-spec    = '[' 1*(type-spec) ']'      // fixed array with explicit element 
 6. No optimized containers can be used inside the schema, except in the case of serving as
    dictionary/offset-table markers for variable-length strings, as described in #4 above
 7. `F` and `N` are not used in schema (use `T` for boolean, `Z` for null)
+8. A record must occupy at least one byte of payload: a schema whose fields total zero bytes,
+   such as one of only `Z` fields or zero-length `S`/`H` fields, shall not be used, since its
+   `<count>` would be unbounded by the data. A parser shall reject such a container whatever
+   its count.
 
 ---
 
